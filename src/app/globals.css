@@ -1,0 +1,7 @@
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body { font-family: 'DM Sans', 'Helvetica Neue', sans-serif; background: #0a0a0a; color: #e8e8e8; -webkit-font-smoothing: antialiased; }
+input, textarea, button, select { font-family: inherit; }
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: #0a0a0a; }
+::-webkit-scrollbar-thumb { background: #333; border-radius: 3px; }
+::selection { background: #f59e0b33; color: #fbbf24; }
