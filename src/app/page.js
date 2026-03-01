@@ -4,13 +4,18 @@ import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
 // ============================================================
+// BOT API (Railway backend)
+// ============================================================
+const BOT_URL = process.env.NEXT_PUBLIC_BOT_URL || 'https://railway-up-production-f5a0.up.railway.app';
+
+// ============================================================
 // COLORS
 // ============================================================
 const C = {
   bg: '#0a0a0a', surface: '#141414', surfaceHover: '#1a1a1a',
   border: '#222', borderLight: '#333',
   text: '#e8e8e8', textMuted: '#888', textDim: '#555',
-  accent: '#f59e0b', accentHover: '#fbbf24', accentDim: '#78350f',
+  accent: '#6366f1', accentHover: '#818cf8', accentDim: '#312e81',
   green: '#22c55e', greenDim: '#14532d',
   red: '#ef4444', redDim: '#7f1d1d',
   blue: '#3b82f6', blueDim: '#1e3a5f',
@@ -69,7 +74,7 @@ function ActionBadge({ action }) {
 function Btn({ children, variant = 'primary', onClick, style: sx, ...props }) {
   const base = { padding: '10px 20px', border: 'none', borderRadius: 8, fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', display: 'inline-flex', alignItems: 'center', gap: 6, transition: 'all 0.15s' };
   const variants = {
-    primary: { ...base, background: C.accent, color: '#000' },
+    primary: { ...base, background: C.accent, color: '#fff' },
     ghost: { ...base, background: 'transparent', color: C.textMuted, border: `1px solid ${C.border}` },
     success: { ...base, background: C.greenDim, color: C.green, border: `1px solid ${C.green}33` },
     danger: { ...base, background: C.redDim, color: C.red, border: `1px solid ${C.red}33` },
@@ -165,7 +170,7 @@ function AuthScreen({ onAuth }) {
 
             {error && <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: error.includes('Check your email') ? C.greenDim : C.redDim, color: error.includes('Check your email') ? C.green : C.red, fontSize: 13 }}>{error}</div>}
 
-            <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px 0', background: C.accent, color: '#000', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.7 : 1, transition: 'all 0.2s', fontFamily: 'inherit' }}>
+            <button type="submit" disabled={loading} style={{ width: '100%', padding: '14px 0', background: C.accent, color: '#fff', border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700, cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.7 : 1, transition: 'all 0.2s', fontFamily: 'inherit' }}>
               {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Create Account'}
             </button>
           </form>
@@ -238,8 +243,44 @@ function DashboardView({ customer, messages, contentItems }) {
 // ============================================================
 // MESSAGES VIEW
 // ============================================================
-function MessagesView({ messages }) {
+function MessagesView({ messages: initialMessages, customer, onNewMessage }) {
+  const [messages, setMessages] = useState(initialMessages);
   const [newMessage, setNewMessage] = useState('');
+  const [sending, setSending] = useState(false);
+  const messagesEndRef = useCallback(node => { if (node) node.scrollIntoView({ behavior: 'smooth' }); }, []);
+
+  // Keep in sync with parent
+  useEffect(() => { setMessages(initialMessages); }, [initialMessages]);
+
+  const handleSend = async () => {
+    if (!newMessage.trim() || sending) return;
+    const text = newMessage.trim();
+    setNewMessage('');
+    setSending(true);
+
+    // Optimistic UI — show user message immediately
+    const tempMsg = { id: `temp-${Date.now()}`, message: text, response: null, created_at: new Date().toISOString(), action_taken: null };
+    setMessages(prev => [...prev, tempMsg]);
+
+    try {
+      const res = await fetch(`${BOT_URL}/api/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ message: text, customer_id: customer?.id }),
+      });
+      const data = await res.json();
+      if (data.reply) {
+        // Replace temp message with real one including response
+        setMessages(prev => prev.map(m => m.id === tempMsg.id ? { ...m, response: data.reply, action_taken: 'general' } : m));
+        onNewMessage?.(); // Refresh parent data
+      } else {
+        setMessages(prev => prev.map(m => m.id === tempMsg.id ? { ...m, response: data.error || 'Failed to get response' } : m));
+      }
+    } catch (e) {
+      setMessages(prev => prev.map(m => m.id === tempMsg.id ? { ...m, response: `Connection error: ${e.message}. Is the bot running?` } : m));
+    }
+    setSending(false);
+  };
 
   return (
     <div>
@@ -253,19 +294,19 @@ function MessagesView({ messages }) {
           {messages.length === 0 ? (
             <div style={{ padding: 40, textAlign: 'center', color: C.textMuted }}>
               <p style={{ fontSize: 14, marginBottom: 8 }}>No messages yet</p>
-              <p style={{ fontSize: 13 }}>Text <span style={{ color: C.accent, fontFamily: "'Space Mono', monospace" }}>+1 (844) 840-0637</span> to start chatting with Sidecar</p>
+              <p style={{ fontSize: 13 }}>Text <span style={{ color: C.accent, fontFamily: "'Space Mono', monospace" }}>+1 (844) 840-0637</span> or send a message below to start</p>
             </div>
           ) : (
             messages.map((m) => (
               <div key={m.id} style={{ marginBottom: 20 }}>
                 {m.message && (
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-                    <div style={{ maxWidth: '75%', background: C.accent, color: '#000', borderRadius: '16px 16px 4px 16px', padding: '10px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.5 }}>
+                    <div style={{ maxWidth: '75%', background: C.accent, color: '#fff', borderRadius: '16px 16px 4px 16px', padding: '10px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.5 }}>
                       {m.message}
                     </div>
                   </div>
                 )}
-                {m.response && (
+                {m.response ? (
                   <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 8 }}>
                     <div style={{ width: 28, height: 28, borderRadius: 8, background: C.accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 12, fontWeight: 700, color: C.accent, fontFamily: "'Space Mono', monospace" }}>S</div>
                     <div>
@@ -276,19 +317,37 @@ function MessagesView({ messages }) {
                         <span style={{ fontSize: 11, color: C.textDim }}>
                           {new Date(m.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                         </span>
-                        <ActionBadge action={m.action_taken} />
+                        {m.action_taken && <ActionBadge action={m.action_taken} />}
                       </div>
                     </div>
                   </div>
-                )}
+                ) : m.message ? (
+                  <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 8 }}>
+                    <div style={{ width: 28, height: 28, borderRadius: 8, background: C.accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 12, fontWeight: 700, color: C.accent, fontFamily: "'Space Mono', monospace" }}>S</div>
+                    <div style={{ padding: '10px 16px', fontSize: 13, color: C.textDim, fontStyle: 'italic' }}>
+                      Thinking...
+                    </div>
+                  </div>
+                ) : null}
               </div>
             ))
           )}
+          <div ref={messagesEndRef} />
         </div>
 
         <div style={{ borderTop: `1px solid ${C.border}`, padding: 16, display: 'flex', gap: 10 }}>
-          <input type="text" value={newMessage} onChange={(e) => setNewMessage(e.target.value)} placeholder="Send a message to Sidecar..." style={{ flex: 1, padding: '12px 16px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, color: C.text, fontSize: 14, outline: 'none', fontFamily: 'inherit' }} />
-          <Btn><Icon name="send" size={16} /> Send</Btn>
+          <input
+            type="text"
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
+            placeholder="Send a message to Sidecar..."
+            disabled={sending}
+            style={{ flex: 1, padding: '12px 16px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, color: C.text, fontSize: 14, outline: 'none', fontFamily: 'inherit', opacity: sending ? 0.6 : 1 }}
+          />
+          <Btn onClick={handleSend} style={{ opacity: sending ? 0.6 : 1 }}>
+            <Icon name="send" size={16} /> {sending ? '...' : 'Send'}
+          </Btn>
         </div>
       </div>
       <div style={{ marginTop: 12, fontSize: 12, color: C.textDim, textAlign: 'center' }}>
@@ -650,7 +709,7 @@ export default function SidecarPortal() {
   const renderView = () => {
     switch (activeView) {
       case 'dashboard': return <DashboardView customer={customer} messages={messages} contentItems={contentItems} />;
-      case 'messages': return <MessagesView messages={messages} />;
+      case 'messages': return <MessagesView messages={messages} customer={customer} onNewMessage={() => customer && loadUserData(auth)} />;
       case 'content': return <ContentView contentItems={contentItems} onRefresh={() => customer && loadUserData(auth)} />;
       case 'uploads': return <UploadsView customer={customer} />;
       case 'settings': return <SettingsView customer={customer} onUpdate={setCustomer} />;
@@ -675,7 +734,7 @@ export default function SidecarPortal() {
               <Icon name={item.icon} size={18} />
               {item.label}
               {item.id === 'content' && pendingCount > 0 && (
-                <span style={{ marginLeft: 'auto', background: C.accent, color: '#000', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 10 }}>{pendingCount}</span>
+                <span style={{ marginLeft: 'auto', background: C.accent, color: '#fff', fontSize: 11, fontWeight: 700, padding: '2px 7px', borderRadius: 10 }}>{pendingCount}</span>
               )}
             </button>
           ))}
