@@ -23,6 +23,20 @@ const C = {
 };
 
 // ============================================================
+// MOBILE DETECTION HOOK
+// ============================================================
+function useIsMobile() {
+  const [isMobile, setIsMobile] = useState(false);
+  useEffect(() => {
+    const check = () => setIsMobile(window.innerWidth <= 768);
+    check();
+    window.addEventListener('resize', check);
+    return () => window.removeEventListener('resize', check);
+  }, []);
+  return isMobile;
+}
+
+// ============================================================
 // ICONS
 // ============================================================
 function Icon({ name, size = 18 }) {
@@ -38,6 +52,7 @@ function Icon({ name, size = 18 }) {
     send: <svg {...s}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>,
     logout: <svg {...s}><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>,
     plus: <svg {...s}><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>,
+    menu: <svg {...s}><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="18" x2="21" y2="18"/></svg>,
   };
   return map[name] || null;
 }
@@ -103,15 +118,12 @@ function AuthScreen({ onAuth }) {
         const { data, error: err } = await supabase.auth.signUp({ email, password });
         if (err) throw err;
         if (data.user) {
-          // Create customer record
           const { error: insertErr } = await supabase.from('customers').insert({
             user_id: data.user.id,
             bar_name: barName || 'My Bar',
             email,
           });
           if (insertErr) console.error('Customer insert error:', insertErr);
-
-          // Check if email confirmation is required
           if (data.session) {
             const { data: customers } = await supabase.from('customers').select('*').eq('user_id', data.user.id);
             onAuth({ user: data.user, session: data.session, customer: customers?.[0] });
@@ -132,12 +144,12 @@ function AuthScreen({ onAuth }) {
     setLoading(false);
   };
 
-  const inputStyle = { width: '100%', padding: '12px 14px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, color: C.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' };
+  const inputStyle = { width: '100%', padding: '12px 14px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, color: C.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' };
   const labelStyle = { display: 'block', fontSize: 12, color: C.textMuted, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' };
 
   return (
-    <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-      <div style={{ width: '100%', maxWidth: 420, padding: 40 }}>
+    <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+      <div style={{ width: '100%', maxWidth: 420 }}>
         <div style={{ textAlign: 'center', marginBottom: 48 }}>
           <div style={{ fontSize: 32, fontWeight: 700, color: C.text, letterSpacing: '-0.03em', fontFamily: "'Space Mono', monospace" }}>SIDECAR</div>
           <div style={{ fontSize: 13, color: C.textMuted, marginTop: 8, letterSpacing: '0.1em', textTransform: 'uppercase' }}>Customer Portal</div>
@@ -184,6 +196,7 @@ function AuthScreen({ onAuth }) {
 // DASHBOARD VIEW
 // ============================================================
 function DashboardView({ customer, messages, contentItems }) {
+  const isMobile = useIsMobile();
   const pendingCount = contentItems.filter(c => c.status === 'pending_approval').length;
   const stats = [
     { label: 'Messages This Week', value: String(messages.length || 0), change: 'From SMS + portal', up: null },
@@ -195,20 +208,20 @@ function DashboardView({ customer, messages, contentItems }) {
   return (
     <div>
       <div style={{ marginBottom: 32 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: C.text, margin: 0, letterSpacing: '-0.02em' }}>
+        <h1 style={{ fontSize: isMobile ? 24 : 28, fontWeight: 700, color: C.text, margin: 0, letterSpacing: '-0.02em' }}>
           Welcome back{customer?.contact_name ? `, ${customer.contact_name.split(' ')[0]}` : ''}
         </h1>
         <p style={{ fontSize: 14, color: C.textMuted, margin: '8px 0 0 0' }}>
-          Here's what's happening at {customer?.bar_name || 'your bar'}.
+          Here&apos;s what&apos;s happening at {customer?.bar_name || 'your bar'}.
         </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: 16, marginBottom: 32 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr 1fr' : 'repeat(auto-fit, minmax(200px, 1fr))', gap: isMobile ? 10 : 16, marginBottom: 32 }}>
         {stats.map((s, i) => (
-          <div key={i} style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, padding: 20 }}>
-            <div style={{ fontSize: 12, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>{s.label}</div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: C.text, fontFamily: "'Space Mono', monospace" }}>{s.value}</div>
-            <div style={{ fontSize: 12, color: s.up ? C.green : C.textMuted, marginTop: 6 }}>{s.change}</div>
+          <div key={i} style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, padding: isMobile ? 14 : 20 }}>
+            <div style={{ fontSize: isMobile ? 10 : 12, color: C.textMuted, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 8 }}>{s.label}</div>
+            <div style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, color: C.text, fontFamily: "'Space Mono', monospace" }}>{s.value}</div>
+            <div style={{ fontSize: isMobile ? 10 : 12, color: s.up ? C.green : C.textMuted, marginTop: 6 }}>{s.change}</div>
           </div>
         ))}
       </div>
@@ -231,7 +244,7 @@ function DashboardView({ customer, messages, contentItems }) {
                   {new Date(m.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                 </div>
               </div>
-              <ActionBadge action={m.action_taken} />
+              {!isMobile && <ActionBadge action={m.action_taken} />}
             </div>
           ))
         )}
@@ -244,12 +257,12 @@ function DashboardView({ customer, messages, contentItems }) {
 // MESSAGES VIEW
 // ============================================================
 function MessagesView({ messages: initialMessages, customer, onNewMessage }) {
+  const isMobile = useIsMobile();
   const [messages, setMessages] = useState(initialMessages);
   const [newMessage, setNewMessage] = useState('');
   const [sending, setSending] = useState(false);
   const messagesEndRef = useCallback(node => { if (node) node.scrollIntoView({ behavior: 'smooth' }); }, []);
 
-  // Keep in sync with parent
   useEffect(() => { setMessages(initialMessages); }, [initialMessages]);
 
   const handleSend = async () => {
@@ -258,7 +271,6 @@ function MessagesView({ messages: initialMessages, customer, onNewMessage }) {
     setNewMessage('');
     setSending(true);
 
-    // Optimistic UI — show user message immediately
     const tempMsg = { id: `temp-${Date.now()}`, message: text, response: null, created_at: new Date().toISOString(), action_taken: null };
     setMessages(prev => [...prev, tempMsg]);
 
@@ -270,14 +282,13 @@ function MessagesView({ messages: initialMessages, customer, onNewMessage }) {
       });
       const data = await res.json();
       if (data.reply) {
-        // Replace temp message with real one including response
         setMessages(prev => prev.map(m => m.id === tempMsg.id ? { ...m, response: data.reply, action_taken: 'general' } : m));
-        onNewMessage?.(); // Refresh parent data
+        onNewMessage?.();
       } else {
         setMessages(prev => prev.map(m => m.id === tempMsg.id ? { ...m, response: data.error || 'Failed to get response' } : m));
       }
     } catch (e) {
-      setMessages(prev => prev.map(m => m.id === tempMsg.id ? { ...m, response: `Connection error: ${e.message}. Is the bot running?` } : m));
+      setMessages(prev => prev.map(m => m.id === tempMsg.id ? { ...m, response: `Connection error: ${e.message}` } : m));
     }
     setSending(false);
   };
@@ -285,23 +296,23 @@ function MessagesView({ messages: initialMessages, customer, onNewMessage }) {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: C.text, margin: 0 }}>Messages</h1>
+        <h1 style={{ fontSize: isMobile ? 24 : 28, fontWeight: 700, color: C.text, margin: 0 }}>Messages</h1>
         <p style={{ fontSize: 14, color: C.textMuted, margin: '8px 0 0 0' }}>Your conversation history with Sidecar</p>
       </div>
 
       <div style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, overflow: 'hidden' }}>
-        <div style={{ maxHeight: 500, overflowY: 'auto', padding: 20 }}>
+        <div style={{ maxHeight: isMobile ? 400 : 500, overflowY: 'auto', padding: isMobile ? 12 : 20 }}>
           {messages.length === 0 ? (
             <div style={{ padding: 40, textAlign: 'center', color: C.textMuted }}>
               <p style={{ fontSize: 14, marginBottom: 8 }}>No messages yet</p>
-              <p style={{ fontSize: 13 }}>Text <span style={{ color: C.accent, fontFamily: "'Space Mono', monospace" }}>+1 (844) 840-0637</span> or send a message below to start</p>
+              <p style={{ fontSize: 13 }}>Text <span style={{ color: C.accent, fontFamily: "'Space Mono', monospace" }}>+1 (844) 840-0637</span> or send a message below</p>
             </div>
           ) : (
             messages.map((m) => (
               <div key={m.id} style={{ marginBottom: 20 }}>
                 {m.message && (
                   <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 8 }}>
-                    <div style={{ maxWidth: '75%', background: C.accent, color: '#fff', borderRadius: '16px 16px 4px 16px', padding: '10px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.5 }}>
+                    <div style={{ maxWidth: isMobile ? '85%' : '75%', background: C.accent, color: '#fff', borderRadius: '16px 16px 4px 16px', padding: '10px 16px', fontSize: 14, fontWeight: 500, lineHeight: 1.5 }}>
                       {m.message}
                     </div>
                   </div>
@@ -310,23 +321,21 @@ function MessagesView({ messages: initialMessages, customer, onNewMessage }) {
                   <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 8 }}>
                     <div style={{ width: 28, height: 28, borderRadius: 8, background: C.accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 12, fontWeight: 700, color: C.accent, fontFamily: "'Space Mono', monospace" }}>S</div>
                     <div>
-                      <div style={{ maxWidth: '75%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: '16px 16px 16px 4px', padding: '10px 16px', fontSize: 14, color: C.text, lineHeight: 1.5 }}>
+                      <div style={{ maxWidth: isMobile ? '85%' : '75%', background: C.bg, border: `1px solid ${C.border}`, borderRadius: '16px 16px 16px 4px', padding: '10px 16px', fontSize: 14, color: C.text, lineHeight: 1.5 }}>
                         {m.response}
                       </div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 4, paddingLeft: 4 }}>
                         <span style={{ fontSize: 11, color: C.textDim }}>
                           {new Date(m.created_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}
                         </span>
-                        {m.action_taken && <ActionBadge action={m.action_taken} />}
+                        {!isMobile && m.action_taken && <ActionBadge action={m.action_taken} />}
                       </div>
                     </div>
                   </div>
                 ) : m.message ? (
                   <div style={{ display: 'flex', justifyContent: 'flex-start', gap: 8 }}>
                     <div style={{ width: 28, height: 28, borderRadius: 8, background: C.accentDim, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, fontSize: 12, fontWeight: 700, color: C.accent, fontFamily: "'Space Mono', monospace" }}>S</div>
-                    <div style={{ padding: '10px 16px', fontSize: 13, color: C.textDim, fontStyle: 'italic' }}>
-                      Thinking...
-                    </div>
+                    <div style={{ padding: '10px 16px', fontSize: 13, color: C.textDim, fontStyle: 'italic' }}>Thinking...</div>
                   </div>
                 ) : null}
               </div>
@@ -335,23 +344,23 @@ function MessagesView({ messages: initialMessages, customer, onNewMessage }) {
           <div ref={messagesEndRef} />
         </div>
 
-        <div style={{ borderTop: `1px solid ${C.border}`, padding: 16, display: 'flex', gap: 10 }}>
+        <div style={{ borderTop: `1px solid ${C.border}`, padding: isMobile ? 10 : 16, display: 'flex', gap: 10 }}>
           <input
             type="text"
             value={newMessage}
             onChange={(e) => setNewMessage(e.target.value)}
             onKeyDown={(e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder="Send a message to Sidecar..."
+            placeholder="Send a message..."
             disabled={sending}
-            style={{ flex: 1, padding: '12px 16px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, color: C.text, fontSize: 14, outline: 'none', fontFamily: 'inherit', opacity: sending ? 0.6 : 1 }}
+            style={{ flex: 1, padding: '12px 16px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 10, color: C.text, fontSize: 16, outline: 'none', fontFamily: 'inherit', opacity: sending ? 0.6 : 1 }}
           />
-          <Btn onClick={handleSend} style={{ opacity: sending ? 0.6 : 1 }}>
-            <Icon name="send" size={16} /> {sending ? '...' : 'Send'}
+          <Btn onClick={handleSend} style={{ opacity: sending ? 0.6 : 1, padding: isMobile ? '10px 14px' : '10px 20px' }}>
+            <Icon name="send" size={16} /> {!isMobile && (sending ? '...' : 'Send')}
           </Btn>
         </div>
       </div>
       <div style={{ marginTop: 12, fontSize: 12, color: C.textDim, textAlign: 'center' }}>
-        💡 You can also text +1 (844) 840-0637 to chat with Sidecar directly
+        You can also text +1 (844) 840-0637 to chat with Sidecar directly
       </div>
     </div>
   );
@@ -361,6 +370,7 @@ function MessagesView({ messages: initialMessages, customer, onNewMessage }) {
 // CONTENT VIEW
 // ============================================================
 function ContentView({ contentItems, onRefresh }) {
+  const isMobile = useIsMobile();
   const [items, setItems] = useState(contentItems);
 
   useEffect(() => { setItems(contentItems); }, [contentItems]);
@@ -382,23 +392,23 @@ function ContentView({ contentItems, onRefresh }) {
 
   return (
     <div>
-      <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+      <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
         <div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: C.text, margin: 0 }}>Content</h1>
+          <h1 style={{ fontSize: isMobile ? 24 : 28, fontWeight: 700, color: C.text, margin: 0 }}>Content</h1>
           <p style={{ fontSize: 14, color: C.textMuted, margin: '8px 0 0 0' }}>Review and manage AI-generated content</p>
         </div>
-        <Btn><Icon name="plus" size={16} /> Request Content</Btn>
+        <Btn style={{ padding: isMobile ? '8px 14px' : '10px 20px', fontSize: isMobile ? 13 : 14 }}><Icon name="plus" size={16} /> Request Content</Btn>
       </div>
 
       {pending.length > 0 && (
         <div style={{ marginBottom: 28 }}>
           <div style={{ fontSize: 13, fontWeight: 600, color: C.accent, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: 12 }}>
-            ⚡ Needs Your Review ({pending.length})
+            Needs Your Review ({pending.length})
           </div>
           <div style={{ display: 'grid', gap: 12 }}>
             {pending.map((item) => (
-              <div key={item.id} style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.accent}33`, padding: 20 }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10 }}>
+              <div key={item.id} style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.accent}33`, padding: isMobile ? 16 : 20 }}>
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 10, flexWrap: 'wrap', gap: 8 }}>
                   <span style={{ fontSize: 15, fontWeight: 600, color: C.text }}>{item.title || item.content_type}</span>
                   <StatusBadge status={item.status} />
                 </div>
@@ -423,7 +433,7 @@ function ContentView({ contentItems, onRefresh }) {
         </div>
         {rest.length === 0 && pending.length === 0 ? (
           <div style={{ padding: 40, textAlign: 'center', color: C.textMuted, fontSize: 14 }}>
-            No content yet. Text Sidecar "make me 4 Instagram posts" to get started!
+            No content yet. Text Sidecar &quot;make me 4 Instagram posts&quot; to get started!
           </div>
         ) : (
           rest.map((item, i) => (
@@ -447,6 +457,7 @@ function ContentView({ contentItems, onRefresh }) {
 // UPLOADS VIEW
 // ============================================================
 function UploadsView({ customer }) {
+  const isMobile = useIsMobile();
   const [uploads, setUploads] = useState([]);
   const [dragActive, setDragActive] = useState(false);
   const [uploading, setUploading] = useState(false);
@@ -485,7 +496,7 @@ function UploadsView({ customer }) {
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: C.text, margin: 0 }}>Uploads</h1>
+        <h1 style={{ fontSize: isMobile ? 24 : 28, fontWeight: 700, color: C.text, margin: 0 }}>Uploads</h1>
         <p style={{ fontSize: 14, color: C.textMuted, margin: '8px 0 0 0' }}>Upload photos, menus, and files for AI content generation</p>
       </div>
 
@@ -494,14 +505,14 @@ function UploadsView({ customer }) {
         onDragLeave={() => setDragActive(false)}
         onDrop={(e) => { e.preventDefault(); setDragActive(false); handleFiles(Array.from(e.dataTransfer.files)); }}
         onClick={() => { const input = document.createElement('input'); input.type = 'file'; input.multiple = true; input.accept = 'image/*,.pdf'; input.onchange = (e) => handleFiles(Array.from(e.target.files)); input.click(); }}
-        style={{ background: dragActive ? C.accentDim : C.surface, border: `2px dashed ${dragActive ? C.accent : C.borderLight}`, borderRadius: 16, padding: '48px 24px', textAlign: 'center', marginBottom: 24, cursor: 'pointer', transition: 'all 0.2s' }}
+        style={{ background: dragActive ? C.accentDim : C.surface, border: `2px dashed ${dragActive ? C.accent : C.borderLight}`, borderRadius: 16, padding: isMobile ? '32px 16px' : '48px 24px', textAlign: 'center', marginBottom: 24, cursor: 'pointer', transition: 'all 0.2s' }}
       >
         <div style={{ marginBottom: 12, color: C.textMuted }}><Icon name="upload" size={32} /></div>
         <div style={{ fontSize: 15, fontWeight: 600, color: C.text, marginBottom: 4 }}>
-          {uploading ? 'Uploading...' : 'Drag & drop files here'}
+          {uploading ? 'Uploading...' : isMobile ? 'Tap to upload files' : 'Drag & drop files here'}
         </div>
-        <div style={{ fontSize: 13, color: C.textMuted }}>or click to browse — photos, menus, event flyers, logos</div>
-        <div style={{ fontSize: 11, color: C.textDim, marginTop: 12 }}>Supported: JPG, PNG, PDF, HEIC • Max 25MB</div>
+        <div style={{ fontSize: 13, color: C.textMuted }}>{isMobile ? 'Photos, menus, event flyers, logos' : 'or click to browse — photos, menus, event flyers, logos'}</div>
+        <div style={{ fontSize: 11, color: C.textDim, marginTop: 12 }}>Supported: JPG, PNG, PDF, HEIC</div>
       </div>
 
       <div style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, overflow: 'hidden' }}>
@@ -534,6 +545,7 @@ function UploadsView({ customer }) {
 // SETTINGS VIEW
 // ============================================================
 function SettingsView({ customer, onUpdate }) {
+  const isMobile = useIsMobile();
   const [form, setForm] = useState({
     bar_name: customer?.bar_name || '',
     contact_name: customer?.contact_name || '',
@@ -558,26 +570,26 @@ function SettingsView({ customer, onUpdate }) {
     setSaving(false);
   };
 
-  const inputStyle = { width: '100%', padding: '10px 14px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, color: C.text, fontSize: 14, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' };
+  const inputStyle = { width: '100%', padding: '10px 14px', background: C.bg, border: `1px solid ${C.border}`, borderRadius: 8, color: C.text, fontSize: 16, outline: 'none', boxSizing: 'border-box', fontFamily: 'inherit' };
 
   return (
     <div>
       <div style={{ marginBottom: 24 }}>
-        <h1 style={{ fontSize: 28, fontWeight: 700, color: C.text, margin: 0 }}>Settings</h1>
+        <h1 style={{ fontSize: isMobile ? 24 : 28, fontWeight: 700, color: C.text, margin: 0 }}>Settings</h1>
         <p style={{ fontSize: 14, color: C.textMuted, margin: '8px 0 0 0' }}>Manage your bar profile and preferences</p>
       </div>
 
       <div style={{ display: 'grid', gap: 16 }}>
-        <div style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, padding: 24 }}>
+        <div style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, padding: isMobile ? 16 : 24 }}>
           <h3 style={{ fontSize: 16, fontWeight: 600, color: C.text, margin: '0 0 20px 0' }}>Bar Profile</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 16 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr', gap: 16 }}>
             {[
-              { key: 'bar_name', label: 'Bar Name', full: false },
-              { key: 'contact_name', label: 'Contact Name', full: false },
-              { key: 'phone', label: 'Phone', full: false },
-              { key: 'email', label: 'Email', full: false },
-              { key: 'instagram_handle', label: 'Instagram', full: false },
-              { key: 'address', label: 'Address', full: false },
+              { key: 'bar_name', label: 'Bar Name' },
+              { key: 'contact_name', label: 'Contact Name' },
+              { key: 'phone', label: 'Phone' },
+              { key: 'email', label: 'Email' },
+              { key: 'instagram_handle', label: 'Instagram' },
+              { key: 'address', label: 'Address' },
             ].map(({ key, label }) => (
               <div key={key}>
                 <label style={{ display: 'block', fontSize: 12, color: C.textMuted, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{label}</label>
@@ -587,7 +599,7 @@ function SettingsView({ customer, onUpdate }) {
           </div>
         </div>
 
-        <div style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, padding: 24 }}>
+        <div style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, padding: isMobile ? 16 : 24 }}>
           <h3 style={{ fontSize: 16, fontWeight: 600, color: C.text, margin: '0 0 8px 0' }}>Brand Voice</h3>
           <p style={{ fontSize: 13, color: C.textMuted, margin: '0 0 16px 0' }}>Tell Sidecar how to write content for your bar</p>
           <textarea value={form.brand_voice} onChange={(e) => setForm({ ...form, brand_voice: e.target.value })} placeholder="Casual and witty. Craft cocktail bar with a neighborhood feel..." style={{ ...inputStyle, height: 100, resize: 'vertical', lineHeight: 1.6 }} />
@@ -600,7 +612,7 @@ function SettingsView({ customer, onUpdate }) {
           {saved && <span style={{ fontSize: 13, color: C.green }}>Changes saved successfully</span>}
         </div>
 
-        <div style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, padding: 24 }}>
+        <div style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, padding: isMobile ? 16 : 24 }}>
           <h3 style={{ fontSize: 16, fontWeight: 600, color: C.text, margin: '0 0 12px 0' }}>Subscription</h3>
           <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
             <div style={{ padding: '6px 14px', borderRadius: 8, background: C.accentDim, color: C.accent, fontSize: 14, fontWeight: 700, fontFamily: "'Space Mono', monospace" }}>
@@ -608,7 +620,7 @@ function SettingsView({ customer, onUpdate }) {
             </div>
             <span style={{ fontSize: 13, color: C.green }}>Active</span>
           </div>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 12 }}>
+          <div style={{ display: 'grid', gridTemplateColumns: isMobile ? '1fr' : 'repeat(3, 1fr)', gap: 12 }}>
             {[
               { name: 'The Well', price: '$500', desc: 'SMS bot, basic content' },
               { name: 'The Double', price: '$1,500', desc: 'Everything + content engine' },
@@ -640,13 +652,12 @@ export default function SidecarPortal() {
   const [messages, setMessages] = useState([]);
   const [contentItems, setContentItems] = useState([]);
   const [customer, setCustomer] = useState(null);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const isMobile = useIsMobile();
 
-  // Check existing session on load
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        loadUserData(session.user);
-      }
+      if (session) loadUserData(session.user);
       setLoading(false);
     });
 
@@ -686,6 +697,11 @@ export default function SidecarPortal() {
     setContentItems([]);
   };
 
+  const handleNavClick = (viewId) => {
+    setActiveView(viewId);
+    if (isMobile) setSidebarOpen(false);
+  };
+
   if (loading) {
     return (
       <div style={{ minHeight: '100vh', background: C.bg, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -718,19 +734,51 @@ export default function SidecarPortal() {
   };
 
   return (
-    <div style={{ display: 'flex', minHeight: '100vh', background: C.bg }}>
+    <div style={{ display: 'flex', minHeight: '100vh', background: C.bg, overflow: 'hidden', maxWidth: '100vw' }}>
+
+      {/* Mobile overlay */}
+      {isMobile && sidebarOpen && (
+        <div
+          onClick={() => setSidebarOpen(false)}
+          style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', zIndex: 198, backdropFilter: 'blur(2px)' }}
+        />
+      )}
+
       {/* Sidebar */}
-      <div style={{ width: 240, background: C.surface, borderRight: `1px solid ${C.border}`, display: 'flex', flexDirection: 'column', flexShrink: 0 }}>
-        <div style={{ padding: '24px 20px', borderBottom: `1px solid ${C.border}` }}>
-          <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: "'Space Mono', monospace", letterSpacing: '-0.02em' }}>SIDECAR</div>
-          <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-            {customer?.bar_name || auth?.email}
+      <div style={{
+        width: 240,
+        background: C.surface,
+        borderRight: `1px solid ${C.border}`,
+        display: 'flex',
+        flexDirection: 'column',
+        flexShrink: 0,
+        ...(isMobile ? {
+          position: 'fixed',
+          top: 0,
+          left: sidebarOpen ? 0 : -260,
+          bottom: 0,
+          zIndex: 199,
+          transition: 'left 0.25s ease',
+          boxShadow: sidebarOpen ? '4px 0 20px rgba(0,0,0,0.4)' : 'none',
+        } : {}),
+      }}>
+        <div style={{ padding: '24px 20px', borderBottom: `1px solid ${C.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div>
+            <div style={{ fontSize: 20, fontWeight: 700, color: C.text, fontFamily: "'Space Mono', monospace", letterSpacing: '-0.02em' }}>SIDECAR</div>
+            <div style={{ fontSize: 11, color: C.textMuted, marginTop: 4, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 160 }}>
+              {customer?.bar_name || auth?.email}
+            </div>
           </div>
+          {isMobile && (
+            <button onClick={() => setSidebarOpen(false)} style={{ background: 'none', border: 'none', color: C.textMuted, cursor: 'pointer', padding: 4 }}>
+              <Icon name="x" size={20} />
+            </button>
+          )}
         </div>
 
         <div style={{ flex: 1, padding: '12px 8px' }}>
           {navItems.map((item) => (
-            <button key={item.id} onClick={() => setActiveView(item.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: activeView === item.id ? C.accentDim + '66' : 'transparent', color: activeView === item.id ? C.accent : C.textMuted, border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: activeView === item.id ? 600 : 400, textAlign: 'left', transition: 'all 0.15s', fontFamily: 'inherit', marginBottom: 2 }}>
+            <button key={item.id} onClick={() => handleNavClick(item.id)} style={{ width: '100%', display: 'flex', alignItems: 'center', gap: 10, padding: '10px 12px', background: activeView === item.id ? C.accentDim + '66' : 'transparent', color: activeView === item.id ? C.accent : C.textMuted, border: 'none', borderRadius: 8, cursor: 'pointer', fontSize: 14, fontWeight: activeView === item.id ? 600 : 400, textAlign: 'left', transition: 'all 0.15s', fontFamily: 'inherit', marginBottom: 2 }}>
               <Icon name={item.icon} size={18} />
               {item.label}
               {item.id === 'content' && pendingCount > 0 && (
@@ -748,8 +796,21 @@ export default function SidecarPortal() {
       </div>
 
       {/* Main */}
-      <div style={{ flex: 1, padding: '32px 40px', overflowY: 'auto', maxWidth: 960 }}>
-        {renderView()}
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minWidth: 0, maxWidth: '100vw' }}>
+        {/* Mobile header */}
+        {isMobile && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '14px 16px', borderBottom: `1px solid ${C.border}`, background: C.surface, position: 'sticky', top: 0, zIndex: 100 }}>
+            <button onClick={() => setSidebarOpen(true)} style={{ background: 'none', border: 'none', color: C.text, cursor: 'pointer', padding: 4 }}>
+              <Icon name="menu" size={22} />
+            </button>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.text, fontFamily: "'Space Mono', monospace" }}>SIDECAR</div>
+            <div style={{ marginLeft: 'auto', fontSize: 12, color: C.textMuted }}>{customer?.bar_name || ''}</div>
+          </div>
+        )}
+
+        <div style={{ flex: 1, padding: isMobile ? '20px 16px' : '32px 40px', overflowY: 'auto', maxWidth: isMobile ? '100%' : 960 }}>
+          {renderView()}
+        </div>
       </div>
     </div>
   );
