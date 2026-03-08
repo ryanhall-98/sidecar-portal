@@ -15,7 +15,7 @@ export default function PrivacyPage() { return (
 <S title="7. Data Retention">We retain your data for the duration of your active subscription. Upon cancellation, your data is deleted within 30 days. You may request immediate deletion at any time by contacting us.</S>
 <S title="8. Your Rights">You have the right to access, correct, or delete your personal information, request a copy of your data, opt out of marketing communications, and request restriction of processing.</S>
 <S title="9. California Residents (CCPA)">California residents have additional rights including the right to know what personal information is collected, the right to request deletion, the right to opt out of the sale of personal information (we do not sell your data), and the right to non-discrimination.</S>
-<S title="10. Contact">Questions about this Privacy Policy? Contact us at <a href="mailto:ryan@sidecarhq.cc" style={{color:C.accent}}>ryan@sidecarhq.cc</a>.</S>
+<S title="10. Contact">Questions about this Privacy Policy? Contact us at <a href="mailto:hello@sidecarhq.cc" style={{color:C.accent}}>hello@sidecarhq.cc</a>.</S>
 </div>
 <div style={{borderTop:`1px solid ${C.border}`,marginTop:48,paddingTop:24}}><div style={{display:'flex',gap:24,fontSize:13}}><a href="/terms" style={{color:C.textMuted,textDecoration:'none'}}>Terms of Service</a><a href="/" style={{color:C.textMuted,textDecoration:'none'}}>Portal</a><a href="https://sidecarhq.cc" style={{color:C.textMuted,textDecoration:'none'}}>Home</a></div></div>
 </div></div>); }
