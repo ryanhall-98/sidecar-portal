@@ -130,6 +130,7 @@ function AuthScreen({ onAuth }) {
             user_id: data.user.id,
             bar_name: barName || 'My Bar',
             email,
+            phone: phone || '',
           });
           if (insertErr) console.error('Customer insert error:', insertErr);
           if (data.session) {
