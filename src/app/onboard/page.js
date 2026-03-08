@@ -8,7 +8,7 @@ export default function OnboardPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
-  const [form, setForm] = useState({ name:'', email:'', phone:'', password:'', barName:'', address:'', barType:'cocktail_bar', instagram:'', needs:[], agreedToSMS:false, agreedToTerms:false });
+  const [form, setForm] = useState({ name:'', email:'', phone:'', password:'', confirmPassword:'', barName:'', address:'', barType:'cocktail_bar', instagram:'', needs:[], agreedToSMS:false, agreedToTerms:false });
   const set = (k,v) => setForm(p=>({...p,[k]:v}));
   const toggleNeed = (n) => setForm(p=>({...p, needs: p.needs.includes(n) ? p.needs.filter(x=>x!==n) : [...p.needs, n]}));
   const needOptions = ['Review Responses','Social Media','Vendor Ordering','Hiring','Events & Promos','Menu Costing','Email Marketing','Inbox Management'];
@@ -62,9 +62,10 @@ export default function OnboardPage() {
                 </div>
               </div>
               <div><label style={labelStyle}>Password</label><input type="password" value={form.password} onChange={e=>set('password',e.target.value)} placeholder="8+ characters" style={inputStyle}/></div>
+              <div><label style={labelStyle}>Confirm Password</label><input type="password" value={form.confirmPassword} onChange={e=>set('confirmPassword',e.target.value)} placeholder="Re-enter password" style={inputStyle}/></div>
             </div>
             {error&&<div style={{marginTop:16,padding:'10px 14px',borderRadius:8,background:'#7f1d1d',color:C.red,fontSize:13}}>{error}</div>}
-            <button onClick={()=>{if(!form.name||!form.email||!form.password||!form.phone){setError('Fill in all fields');return;}if(!form.agreedToSMS){setError('Please agree to receive SMS messages');return;}if(form.password.length<8){setError('Password must be 8+ characters');return;}setError('');setStep(2);}} style={{width:'100%',marginTop:24,padding:'14px 0',background:C.accent,color:'#fff',border:'none',borderRadius:10,fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>Continue</button>
+            <button onClick={()=>{if(!form.name||!form.email||!form.password||!form.phone){setError('Fill in all fields');return;}if(!form.agreedToSMS){setError('Please agree to receive SMS messages');return;}if(form.password.length<8){setError('Password must be at least 8 characters');return;}if(form.password!==form.confirmPassword){setError('Passwords do not match');return;}setError('');setStep(2);}} style={{width:'100%',marginTop:24,padding:'14px 0',background:C.accent,color:'#fff',border:'none',borderRadius:10,fontSize:15,fontWeight:700,cursor:'pointer',fontFamily:'inherit'}}>Continue</button>
           </div>)}
           {step===2&&(<div>
             <h2 style={{fontSize:22,fontWeight:700,color:C.text,marginBottom:4}}>Tell us about your bar</h2>
