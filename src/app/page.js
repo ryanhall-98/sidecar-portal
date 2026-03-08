@@ -105,6 +105,10 @@ function AuthScreen({ onAuth }) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [barName, setBarName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [agreedToSMS, setAgreedToSMS] = useState(false);
+  const [agreedToTerms, setAgreedToTerms] = useState(false);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -115,6 +119,10 @@ function AuthScreen({ onAuth }) {
 
     try {
       if (mode === 'signup') {
+        if (!phone) { setError('Please enter your phone number'); setLoading(false); return; }
+        if (!agreedToSMS) { setError('Please agree to receive SMS messages'); setLoading(false); return; }
+        if (!agreedToTerms) { setError('Please agree to the Terms of Service'); setLoading(false); return; }
+        if (password !== confirmPassword) { setError('Passwords do not match'); setLoading(false); return; }
         const { data, error: err } = await supabase.auth.signUp({ email, password });
         if (err) throw err;
         if (data.user) {
@@ -175,10 +183,37 @@ function AuthScreen({ onAuth }) {
               <label style={labelStyle}>Email</label>
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@yourbar.com" required style={inputStyle} />
             </div>
-            <div style={{ marginBottom: 24 }}>
+            {mode === 'signup' && (
+              <div style={{ marginBottom: 16 }}>
+                <label style={labelStyle}>Phone Number</label>
+                <input type="tel" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="(555) 555-5555" required style={inputStyle} />
+              </div>
+            )}
+            {mode === 'signup' && (
+              <div style={{ marginBottom: 16, background: '#0a0a0a', border: '1px solid #222', borderRadius: 10, padding: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                  <input type="checkbox" checked={agreedToSMS} onChange={(e) => setAgreedToSMS(e.target.checked)} style={{ marginTop: 3, accentColor: '#6366f1', width: 18, height: 18, flexShrink: 0 }} />
+                  <span style={{ fontSize: 13, color: '#e8e8e8', lineHeight: 1.5 }}>I agree to receive SMS and text messages from Sidecar at the phone number provided. Messages will include task confirmations, inventory updates, content deliverables, review responses, and operational support. Message frequency varies. Msg & data rates may apply. Reply STOP to cancel, HELP for help.</span>
+                </div>
+              </div>
+            )}
+            <div style={{ marginBottom: 16 }}>
               <label style={labelStyle}>Password</label>
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" required minLength={6} style={inputStyle} />
+              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="8+ characters" required minLength={8} style={inputStyle} />
             </div>
+            {mode === 'signup' && (
+              <div style={{ marginBottom: 16 }}>
+                <label style={labelStyle}>Confirm Password</label>
+                <input type="password" value={confirmPassword} onChange={(e) => setConfirmPassword(e.target.value)} placeholder="Re-enter password" required style={inputStyle} />
+              </div>
+            )}
+            {mode === 'signup' && (
+              <div style={{ marginBottom: 16, display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                <input type="checkbox" checked={agreedToTerms} onChange={(e) => setAgreedToTerms(e.target.checked)} style={{ marginTop: 3, accentColor: '#6366f1', width: 18, height: 18, flexShrink: 0 }} />
+                <span style={{ fontSize: 13, color: '#888', lineHeight: 1.5 }}>I agree to the <a href="/terms" target="_blank" style={{ color: '#6366f1', textDecoration: 'none' }}>Terms of Service</a> and <a href="/privacy" target="_blank" style={{ color: '#6366f1', textDecoration: 'none' }}>Privacy Policy</a></span>
+              </div>
+            )}
+            <div style={{ marginBottom: 24 }}></div>
 
             {error && <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: error.includes('Check your email') ? C.greenDim : C.redDim, color: error.includes('Check your email') ? C.green : C.red, fontSize: 13 }}>{error}</div>}
 
