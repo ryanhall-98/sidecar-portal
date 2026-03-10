@@ -209,11 +209,8 @@ export default function BrandProfilePage() {
   };
 
   const canProceed = () => {
-    if (step === 0) return profile.bar_name && profile.owner_name;
-    if (step === 1) return profile.tone.length > 0;
-    if (step === 2) return profile.visual_style;
-    if (step === 3) return profile.content_types.length > 0;
-    return true;
+    if (step === 0) return profile.bar_name; // only bar name required
+    return true; // all other steps are optional
   };
 
   // Loading state
@@ -329,7 +326,7 @@ export default function BrandProfilePage() {
           {step === 1 && (
             <div>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: '0 0 4px' }}>What&apos;s the vibe?</h2>
-              <p style={{ fontSize: 13, color: C.textDim, margin: '0 0 24px' }}>Pick 1–3 that match how your bar talks to its audience.</p>
+              <p style={{ fontSize: 13, color: C.textDim, margin: '0 0 24px' }}>Pick 1–3 that match how your bar talks to its audience. <span style={{ color: C.accent }}>Optional — skip if unsure.</span></p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
                 {TONE_OPTIONS.map(opt => {
                   const selected = profile.tone.includes(opt.id);
@@ -362,7 +359,7 @@ export default function BrandProfilePage() {
           {step === 2 && (
             <div>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: '0 0 4px' }}>Visual Style</h2>
-              <p style={{ fontSize: 13, color: C.textDim, margin: '0 0 24px' }}>Guides the aesthetic of photos and content themes.</p>
+              <p style={{ fontSize: 13, color: C.textDim, margin: '0 0 24px' }}>Guides the aesthetic of photos and content themes. <span style={{ color: C.accent }}>Optional.</span></p>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 10 }}>
                 {VISUAL_OPTIONS.map(opt => {
                   const selected = profile.visual_style === opt.id;
@@ -444,7 +441,7 @@ export default function BrandProfilePage() {
           {step === 3 && (
             <div>
               <h2 style={{ fontSize: 20, fontWeight: 700, color: C.text, margin: '0 0 4px' }}>Content Rules</h2>
-              <p style={{ fontSize: 13, color: C.textDim, margin: '0 0 24px' }}>What to post, how often, and how to deliver it.</p>
+              <p style={{ fontSize: 13, color: C.textDim, margin: '0 0 24px' }}>What to post, how often, and how to deliver it. <span style={{ color: C.accent }}>All optional.</span></p>
 
               <label style={labelStyle}>Post Frequency</label>
               <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>

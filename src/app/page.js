@@ -578,6 +578,11 @@ function UploadsView({ customer }) {
 }
 
 // ============================================================
+// BRAND PROFILE REDIRECT
+function BrandProfileRedirect() {
+  if (typeof window !== "undefined") window.location.href = "/brand-profile";
+  return <div style={{minHeight:"60vh",display:"flex",alignItems:"center",justifyContent:"center",color:"#888",fontSize:15}}>Redirecting to Brand Profile...</div>;
+}
 // SETTINGS VIEW
 // ============================================================
 function SettingsView({ customer, onUpdate }) {
@@ -637,8 +642,8 @@ function SettingsView({ customer, onUpdate }) {
 
         <div style={{ background: C.surface, borderRadius: 12, border: `1px solid ${C.border}`, padding: isMobile ? 16 : 24 }}>
           <h3 style={{ fontSize: 16, fontWeight: 600, color: C.text, margin: '0 0 8px 0' }}>Brand Voice</h3>
-          <p style={{ fontSize: 13, color: C.textMuted, margin: '0 0 16px 0' }}>Tell Sidecar how to write content for your bar</p>
-          <textarea value={form.brand_voice} onChange={(e) => setForm({ ...form, brand_voice: e.target.value })} placeholder="Casual and witty. Craft cocktail bar with a neighborhood feel..." style={{ ...inputStyle, height: 100, resize: 'vertical', lineHeight: 1.6 }} />
+          <p style={{ fontSize: 13, color: C.textMuted, margin: '0 0 16px 0' }}>Set your bar's tone, visual style, content preferences, and delivery method</p>
+          <a href="/brand-profile" style={{ display: 'inline-block', padding: '12px 24px', background: C.accent, color: '#fff', borderRadius: 10, fontSize: 14, fontWeight: 600, textDecoration: 'none', fontFamily: 'inherit' }}>Edit Brand Voice Profile →</a>
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
@@ -753,6 +758,7 @@ export default function SidecarPortal() {
     { id: 'messages', label: 'Messages', icon: 'messages' },
     { id: 'content', label: 'Content', icon: 'content' },
     { id: 'uploads', label: 'Uploads', icon: 'upload' },
+    { id: 'brand', label: 'Brand Profile', icon: 'settings' },
     { id: 'settings', label: 'Settings', icon: 'settings' },
   ];
 
@@ -764,6 +770,7 @@ export default function SidecarPortal() {
       case 'messages': return <MessagesView messages={messages} customer={customer} onNewMessage={() => customer && loadUserData(auth)} />;
       case 'content': return <ContentView contentItems={contentItems} onRefresh={() => customer && loadUserData(auth)} />;
       case 'uploads': return <UploadsView customer={customer} />;
+      case 'brand': return <BrandProfileRedirect />;
       case 'settings': return <SettingsView customer={customer} onUpdate={setCustomer} />;
       default: return <DashboardView customer={customer} messages={messages} contentItems={contentItems} />;
     }
