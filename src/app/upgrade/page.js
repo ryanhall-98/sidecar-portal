@@ -275,7 +275,7 @@ export default function UpgradePage() {
                     fontFamily: T.sans, transition: 'opacity 0.15s',
                   }}
                 >
-                  {isLoading ? 'Opening checkout...' : isCurrent ? 'Current plan' : currentTier === 'churned' ? 'Reactivate' : 'Upgrade'}
+                  {isLoading ? 'Opening checkout...' : isCurrent ? 'Current plan' : currentTier === 'churned' ? 'Reactivate' : 'Select plan'}
                 </button>
               </div>
             );
