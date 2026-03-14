@@ -568,7 +568,7 @@ export default function SidecarPortal() {
   const renderView = () => {
     switch (view) {
       case 'account':  return <AccountView customer={customer} tasks={tasks} />;
-      case "settings": return <SettingsView key="settings" customer={customer} onUpdate={c => setCustomer(c)} />;
+      case "settings": return <SettingsView key="settings" customer={customer} onUpdate={useCallback((c) => setCustomer(c), [])} />;
       case 'plan':     return <PlanView customer={customer} />;
       default:         return <AccountView customer={customer} tasks={tasks} />;
     }
