@@ -298,7 +298,7 @@ const FIELD_STYLE = {
   outline: "none", boxSizing: "border-box", fontFamily: T.sans,
 };
 
-function SettingsView({ customer, onUpdate }) {
+const SettingsView = React.memo(function SettingsView({ customer, onUpdate }) {
   // Use individual state vars instead of a form object to prevent focus loss
   const [barName,       setBarName]       = useState(customer?.bar_name          || '');
   const [contactName,   setContactName]   = useState(customer?.contact_name      || '');
@@ -437,7 +437,7 @@ function SettingsView({ customer, onUpdate }) {
       </Section>
     </div>
   );
-}
+});
 
 // ─── PLAN VIEW ────────────────────────────────────────────────
 // Updated pricing: $299 / $799 / $1,999. Upgrade button links to /upgrade page.
