@@ -88,13 +88,6 @@ function AuthScreen({ onAuth }) {
   const [err, setErr]         = useState('');
   const [loading, setLoading] = useState(false);
 
-  const inp = {
-    width: '100%', padding: '11px 14px',
-    background: T.bg, border: `1px solid ${T.border}`,
-    borderRadius: 8, color: T.text, fontSize: 15,
-    outline: 'none', boxSizing: 'border-box', fontFamily: T.sans,
-  };
-
   const submit = async (e) => {
     e.preventDefault();
     setErr(''); setLoading(true);
@@ -147,27 +140,27 @@ function AuthScreen({ onAuth }) {
             {mode === 'signup' && (
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Bar Name</label>
-                <input value={barName} onChange={e => setBar(e.target.value)} placeholder="The Velvet Room" style={inp} />
+                <input value={barName} onChange={e => setBar(e.target.value)} placeholder="The Velvet Room" style={FIELD_STYLE} />
               </div>
             )}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Email</label>
-              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@yourbar.com" style={inp} />
+              <input type="email" value={email} onChange={e => setEmail(e.target.value)} required placeholder="you@yourbar.com" style={FIELD_STYLE} />
             </div>
             {mode === 'signup' && (
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Phone</label>
-                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="+1 (555) 555-5555" style={inp} />
+                <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} required placeholder="+1 (555) 555-5555" style={FIELD_STYLE} />
               </div>
             )}
             <div style={{ marginBottom: 14 }}>
               <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Password</label>
-              <input type="password" value={password} onChange={e => setPass(e.target.value)} required minLength={8} placeholder="8+ characters" style={inp} />
+              <input type="password" value={password} onChange={e => setPass(e.target.value)} required minLength={8} placeholder="8+ characters" style={FIELD_STYLE} />
             </div>
             {mode === 'signup' && (
               <div style={{ marginBottom: 14 }}>
                 <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Confirm Password</label>
-                <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required placeholder="Re-enter password" style={inp} />
+                <input type="password" value={confirm} onChange={e => setConfirm(e.target.value)} required placeholder="Re-enter password" style={FIELD_STYLE} />
               </div>
             )}
             {mode === 'signup' && (
@@ -298,6 +291,13 @@ function AccountView({ customer, tasks }) {
 // ─── SETTINGS VIEW ────────────────────────────────────────────
 // BUG FIX: Field is defined inside SettingsView but uses local `values` state
 // and individual setters to avoid re-render losing focus on every keystroke.
+const FIELD_STYLE = {
+  width: "100%", padding: "10px 14px",
+  background: T.bg, border: `1px solid ${T.border}`,
+  borderRadius: 8, color: T.text, fontSize: 15,
+  outline: "none", boxSizing: "border-box", fontFamily: T.sans,
+};
+
 function SettingsView({ customer, onUpdate }) {
   // Use individual state vars instead of a form object to prevent focus loss
   const [barName,       setBarName]       = useState(customer?.bar_name          || '');
@@ -314,13 +314,6 @@ function SettingsView({ customer, onUpdate }) {
   const [saving,        setSaving]        = useState(false);
   const [saved,         setSaved]         = useState(false);
   const [fbSent,        setFbSent]        = useState(false);
-
-  const inp = {
-    width: '100%', padding: '10px 14px',
-    background: T.bg, border: `1px solid ${T.border}`,
-    borderRadius: 8, color: T.text, fontSize: 15,
-    outline: 'none', boxSizing: 'border-box', fontFamily: T.sans,
-  };
 
   const save = async () => {
     if (!customer?.id) return;
@@ -362,23 +355,23 @@ function SettingsView({ customer, onUpdate }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <div>
             <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Bar Name</label>
-            <input value={barName} onChange={e => setBarName(e.target.value)} placeholder="The Velvet Room" style={inp} />
+            <input value={barName} onChange={e => setBarName(e.target.value)} placeholder="The Velvet Room" style={FIELD_STYLE} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Contact Name</label>
-            <input value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Your name" style={inp} />
+            <input value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Your name" style={FIELD_STYLE} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Phone</label>
-            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 (555) 555-5555" style={inp} />
+            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 (555) 555-5555" style={FIELD_STYLE} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Email</label>
-            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@yourbar.com" style={inp} />
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@yourbar.com" style={FIELD_STYLE} />
           </div>
           <div style={{ gridColumn: '1 / -1' }}>
             <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Address</label>
-            <input value={address} onChange={e => setAddress(e.target.value)} placeholder="123 Main St, New York, NY" style={inp} />
+            <input value={address} onChange={e => setAddress(e.target.value)} placeholder="123 Main St, New York, NY" style={FIELD_STYLE} />
           </div>
         </div>
       </Section>
@@ -387,19 +380,19 @@ function SettingsView({ customer, onUpdate }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
           <div>
             <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Instagram</label>
-            <input value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@yourbar" style={inp} />
+            <input value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@yourbar" style={FIELD_STYLE} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>TikTok</label>
-            <input value={tiktok} onChange={e => setTiktok(e.target.value)} placeholder="@yourbar" style={inp} />
+            <input value={tiktok} onChange={e => setTiktok(e.target.value)} placeholder="@yourbar" style={FIELD_STYLE} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Facebook</label>
-            <input value={facebook} onChange={e => setFacebook(e.target.value)} placeholder="yourbar" style={inp} />
+            <input value={facebook} onChange={e => setFacebook(e.target.value)} placeholder="yourbar" style={FIELD_STYLE} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Twitter / X</label>
-            <input value={twitter} onChange={e => setTwitter(e.target.value)} placeholder="@yourbar" style={inp} />
+            <input value={twitter} onChange={e => setTwitter(e.target.value)} placeholder="@yourbar" style={FIELD_STYLE} />
           </div>
         </div>
         <div style={{ marginTop: 10, fontSize: 12, color: T.textMid, lineHeight: 1.5 }}>
@@ -414,7 +407,7 @@ function SettingsView({ customer, onUpdate }) {
           onChange={e => setBrandVoice(e.target.value)}
           placeholder="e.g. Dark and moody craft cocktail bar. Sophisticated but approachable. Think speakeasy vibes..."
           rows={4}
-          style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }}
+          style={{ ...FIELD_STYLE, resize: 'vertical', lineHeight: 1.6 }}
         />
         <div style={{ marginTop: 8, fontSize: 12, color: T.textMid }}>The more specific, the better. This shapes everything Sidecar writes for you.</div>
       </Section>
@@ -434,7 +427,7 @@ function SettingsView({ customer, onUpdate }) {
           onChange={e => setFeedback(e.target.value)}
           placeholder="Something not working? Feature request? We read everything."
           rows={3}
-          style={{ ...inp, resize: 'vertical', marginBottom: 10 }}
+          style={{ ...FIELD_STYLE, resize: 'vertical', marginBottom: 10 }}
         />
         <button onClick={sendFeedback} style={{
           padding: '10px 20px', background: T.surfaceUp, color: T.text,

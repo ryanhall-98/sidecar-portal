@@ -80,7 +80,7 @@ export default function UpgradePage() {
   }, []);
 
   const checkout = async (plan) => {
-    if (!customer?.id) return;
+    if (!customer?.id) { setErr("Still loading your account — please wait a moment and try again."); return; }
     setCheckingOut(plan.key);
     setErr('');
     try {
@@ -108,7 +108,7 @@ export default function UpgradePage() {
   };
 
   const manageBilling = async () => {
-    if (!customer?.id) return;
+    if (!customer?.id) { setErr("Still loading your account — please wait a moment and try again."); return; }
     setManagingBilling(true);
     try {
       const r = await fetch(`${BOT_URL}/api/billing-portal`, {
