@@ -1,12 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const BOT_URL = process.env.NEXT_PUBLIC_BOT_URL || 'https://railway-up-production-f5a0.up.railway.app';
 const SIDECAR_SMS = '+18448400637';
 
-// ─── THEME ───────────────────────────────────────────────────
 const T = {
   bg:          '#080808',
   surface:     '#111',
@@ -29,21 +28,15 @@ const T = {
   sans:        "'DM Sans', system-ui, sans-serif",
 };
 
-// ─── PLAN METADATA ───────────────────────────────────────────
-const PLANS = {
-  trial:         { label: 'Trial',        color: T.amber,  bg: T.amberLo, posts: 4  },
-  the_well:      { label: 'The Well',     color: T.accent, bg: T.accentLo, posts: 8  },
-  the_double:    { label: 'The Double',   color: T.accent, bg: T.accentLo, posts: 20 },
-  the_full_pour: { label: 'The Full Pour',color: T.green,  bg: T.greenLo, posts: '∞' },
-  churned:       { label: 'Churned',      color: T.red,    bg: T.redLo,   posts: 0  },
+const PLAN_META = {
+  trial:         { label: 'Trial',         color: T.amber,  bg: T.amberLo,  posts: 4    },
+  the_well:      { label: 'The Well',      color: T.accent, bg: T.accentLo, posts: 8    },
+  the_double:    { label: 'The Double',    color: T.accent, bg: T.accentLo, posts: 20   },
+  the_full_pour: { label: 'The Full Pour', color: T.green,  bg: T.greenLo,  posts: '∞'  },
+  churned:       { label: 'Churned',       color: T.red,    bg: T.redLo,    posts: 0    },
 };
 
-function planMeta(tier) {
-  return PLANS[tier] || PLANS.trial;
-}
-
-// ─── TINY UTILS ──────────────────────────────────────────────
-function cls(...args) { return args.filter(Boolean).join(' '); }
+function planMeta(tier) { return PLAN_META[tier] || PLAN_META.trial; }
 
 function relTime(iso) {
   if (!iso) return '';
@@ -57,13 +50,13 @@ function relTime(iso) {
 }
 
 const CATEGORY_COLORS = {
-  social:    { text: '#a78bfa', bg: '#1a1535' },
-  ordering:  { text: '#34d399', bg: '#0d2218' },
-  reviews:   { text: '#60a5fa', bg: '#0d1b35' },
-  hiring:    { text: '#f472b6', bg: '#2a1020' },
-  events:    { text: '#fb923c', bg: '#251508' },
-  image:     { text: '#a78bfa', bg: '#1a1535' },
-  general:   { text: T.textMid, bg: T.surface  },
+  social:   { text: '#a78bfa', bg: '#1a1535' },
+  ordering: { text: '#34d399', bg: '#0d2218' },
+  reviews:  { text: '#60a5fa', bg: '#0d1b35' },
+  hiring:   { text: '#f472b6', bg: '#2a1020' },
+  events:   { text: '#fb923c', bg: '#251508' },
+  image:    { text: '#a78bfa', bg: '#1a1535' },
+  general:  { text: T.textMid, bg: T.surface  },
 };
 
 function CategoryPill({ category }) {
@@ -71,22 +64,14 @@ function CategoryPill({ category }) {
   return (
     <span style={{
       display: 'inline-block', padding: '2px 8px', borderRadius: 4,
-      background: c.bg, color: c.text,
-      fontSize: 11, fontWeight: 600, textTransform: 'uppercase',
-      letterSpacing: '0.06em', fontFamily: T.mono,
-    }}>
-      {category || 'general'}
-    </span>
+      background: c.bg, color: c.text, fontSize: 11, fontWeight: 600,
+      textTransform: 'uppercase', letterSpacing: '0.06em', fontFamily: T.mono,
+    }}>{category || 'general'}</span>
   );
 }
 
 function StatusDot({ status }) {
-  const map = {
-    pending:  T.amber,
-    done:     T.green,
-    approved: T.green,
-    rejected: T.red,
-  };
+  const map = { pending: T.amber, done: T.green, approved: T.green, rejected: T.red };
   return <span style={{ display: 'inline-block', width: 7, height: 7, borderRadius: '50%', background: map[status] || T.textLow, flexShrink: 0 }} />;
 }
 
@@ -112,13 +97,12 @@ function AuthScreen({ onAuth }) {
 
   const submit = async (e) => {
     e.preventDefault();
-    setErr('');
-    setLoading(true);
+    setErr(''); setLoading(true);
     try {
       if (mode === 'signup') {
-        if (!phone)    { setErr('Phone number required'); setLoading(false); return; }
-        if (!smsOk)    { setErr('Please agree to SMS messages'); setLoading(false); return; }
-        if (!termsOk)  { setErr('Please agree to Terms of Service'); setLoading(false); return; }
+        if (!phone)   { setErr('Phone number required'); setLoading(false); return; }
+        if (!smsOk)   { setErr('Please agree to SMS messages'); setLoading(false); return; }
+        if (!termsOk) { setErr('Please agree to Terms of Service'); setLoading(false); return; }
         if (password !== confirm) { setErr('Passwords do not match'); setLoading(false); return; }
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
@@ -145,26 +129,20 @@ function AuthScreen({ onAuth }) {
   return (
     <div style={{ minHeight: '100vh', background: T.bg, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 20, fontFamily: T.sans }}>
       <div style={{ width: '100%', maxWidth: 400 }}>
-
-        {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: 40 }}>
           <div style={{ fontSize: 28, fontWeight: 700, color: T.text, fontFamily: T.mono, letterSpacing: '0.1em' }}>SIDECAR</div>
           <div style={{ fontSize: 12, color: T.textMid, marginTop: 6, letterSpacing: '0.15em', textTransform: 'uppercase' }}>Customer Portal</div>
         </div>
-
         <div style={{ background: T.surface, borderRadius: 14, border: `1px solid ${T.border}`, padding: 28 }}>
-          {/* Tab switcher */}
           <div style={{ display: 'flex', background: T.bg, borderRadius: 8, padding: 3, marginBottom: 24 }}>
             {['login','signup'].map(m => (
-              <button key={m} onClick={() => { setMode(m); setErr(''); }}
-                style={{ flex: 1, padding: '9px 0', background: mode === m ? T.surface : 'transparent',
-                  color: mode === m ? T.text : T.textMid, border: 'none', borderRadius: 6,
-                  cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: T.sans, transition: 'all 0.15s' }}>
-                {m === 'login' ? 'Sign In' : 'Sign Up'}
-              </button>
+              <button key={m} onClick={() => { setMode(m); setErr(''); }} style={{
+                flex: 1, padding: '9px 0', background: mode === m ? T.surface : 'transparent',
+                color: mode === m ? T.text : T.textMid, border: 'none', borderRadius: 6,
+                cursor: 'pointer', fontSize: 14, fontWeight: 600, fontFamily: T.sans, transition: 'all 0.15s',
+              }}>{m === 'login' ? 'Sign In' : 'Sign Up'}</button>
             ))}
           </div>
-
           <form onSubmit={submit}>
             {mode === 'signup' && (
               <div style={{ marginBottom: 14 }}>
@@ -195,45 +173,30 @@ function AuthScreen({ onAuth }) {
             {mode === 'signup' && (
               <div style={{ marginBottom: 14, padding: 12, background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8 }}>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-                  <input type="checkbox" checked={smsOk} onChange={e => setSmsOk(e.target.checked)}
-                    style={{ marginTop: 2, accentColor: T.accent, width: 16, height: 16, flexShrink: 0 }} />
-                  <span style={{ fontSize: 12, color: T.text, lineHeight: 1.5 }}>
-                    I agree to receive SMS messages from Sidecar. Msg & data rates may apply. Reply STOP to cancel.
-                  </span>
+                  <input type="checkbox" checked={smsOk} onChange={e => setSmsOk(e.target.checked)} style={{ marginTop: 2, accentColor: T.accent, width: 16, height: 16, flexShrink: 0 }} />
+                  <span style={{ fontSize: 12, color: T.text, lineHeight: 1.5 }}>I agree to receive SMS messages from Sidecar. Msg & data rates may apply. Reply STOP to cancel.</span>
                 </label>
               </div>
             )}
             {mode === 'signup' && (
               <div style={{ marginBottom: 20 }}>
                 <label style={{ display: 'flex', alignItems: 'flex-start', gap: 10, cursor: 'pointer' }}>
-                  <input type="checkbox" checked={termsOk} onChange={e => setTermsOk(e.target.checked)}
-                    style={{ marginTop: 2, accentColor: T.accent, width: 16, height: 16, flexShrink: 0 }} />
+                  <input type="checkbox" checked={termsOk} onChange={e => setTermsOk(e.target.checked)} style={{ marginTop: 2, accentColor: T.accent, width: 16, height: 16, flexShrink: 0 }} />
                   <span style={{ fontSize: 12, color: T.textMid, lineHeight: 1.5 }}>
-                    I agree to the{' '}
-                    <a href="/terms" target="_blank" style={{ color: T.accent, textDecoration: 'none' }}>Terms of Service</a>
-                    {' '}and{' '}
-                    <a href="/privacy" target="_blank" style={{ color: T.accent, textDecoration: 'none' }}>Privacy Policy</a>
+                    I agree to the <a href="/terms" target="_blank" style={{ color: T.accent, textDecoration: 'none' }}>Terms of Service</a> and <a href="/privacy" target="_blank" style={{ color: T.accent, textDecoration: 'none' }}>Privacy Policy</a>
                   </span>
                 </label>
               </div>
             )}
-
             {err && (
-              <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8,
-                background: err.includes('Check') ? T.greenLo : T.redLo,
-                color: err.includes('Check') ? T.green : T.red, fontSize: 13 }}>
-                {err}
-              </div>
+              <div style={{ marginBottom: 16, padding: '10px 14px', borderRadius: 8, background: err.includes('Check') ? T.greenLo : T.redLo, color: err.includes('Check') ? T.green : T.red, fontSize: 13 }}>{err}</div>
             )}
-
             <button type="submit" disabled={loading} style={{
               width: '100%', padding: '13px 0', background: T.accent, color: '#fff',
               border: 'none', borderRadius: 8, fontSize: 15, fontWeight: 700,
               cursor: loading ? 'wait' : 'pointer', opacity: loading ? 0.7 : 1,
               fontFamily: T.sans, transition: 'opacity 0.15s',
-            }}>
-              {loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Create Account'}
-            </button>
+            }}>{loading ? 'Loading...' : mode === 'login' ? 'Sign In' : 'Create Account'}</button>
           </form>
         </div>
       </div>
@@ -242,20 +205,17 @@ function AuthScreen({ onAuth }) {
 }
 
 // ─── ACCOUNT VIEW ─────────────────────────────────────────────
-// The primary view — bar info, plan, the SMS number, recent tasks
 function AccountView({ customer, tasks }) {
   const plan = planMeta(customer?.subscription_tier);
   const recentTasks = (tasks || []).slice(0, 8);
 
   return (
     <div style={{ maxWidth: 640 }}>
-
       {/* Hero — SMS CTA */}
       <div style={{
         background: T.accentLo, border: `1px solid ${T.accent}33`,
         borderRadius: 14, padding: '24px 28px', marginBottom: 24,
-        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-        flexWrap: 'wrap', gap: 16,
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16,
       }}>
         <div>
           <div style={{ fontSize: 13, color: T.accentHi, fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Your Sidecar Number</div>
@@ -286,9 +246,16 @@ function AccountView({ customer, tasks }) {
             <span style={{ width: 7, height: 7, borderRadius: '50%', background: plan.color, display: 'inline-block' }} />
             <span style={{ fontSize: 14, fontWeight: 700, color: plan.color, fontFamily: T.mono }}>{plan.label}</span>
           </div>
-          <div style={{ fontSize: 12, color: T.textMid }}>
+          <div style={{ fontSize: 12, color: T.textMid, marginBottom: 8 }}>
             {plan.posts === '∞' ? 'Unlimited posts/week' : `${plan.posts} posts/week`}
           </div>
+          {(customer?.subscription_tier === 'trial' || customer?.subscription_tier === 'churned') && (
+            <a href="/upgrade" style={{
+              display: 'inline-block', padding: '5px 12px', background: T.accent,
+              color: '#fff', borderRadius: 6, fontSize: 12, fontWeight: 700,
+              textDecoration: 'none', fontFamily: T.sans,
+            }}>Upgrade →</a>
+          )}
         </div>
       </div>
 
@@ -298,58 +265,55 @@ function AccountView({ customer, tasks }) {
           <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>Recent Activity</span>
           <span style={{ fontSize: 12, color: T.textMid }}>{recentTasks.length} tasks</span>
         </div>
-
         {recentTasks.length === 0 ? (
           <div style={{ padding: '40px 20px', textAlign: 'center', color: T.textMid, fontSize: 14 }}>
             No activity yet — text Sidecar to get started.
           </div>
-        ) : (
-          recentTasks.map((t, i) => (
-            <div key={t.id} style={{
-              padding: '14px 20px',
-              borderBottom: i < recentTasks.length - 1 ? `1px solid ${T.border}` : 'none',
-              display: 'flex', alignItems: 'flex-start', gap: 12,
-            }}>
-              <StatusDot status={t.status} />
-              <div style={{ flex: 1, minWidth: 0 }}>
-                <div style={{ fontSize: 13, color: T.text, lineHeight: 1.4, marginBottom: 5,
-                  whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {t.full_message || t.summary || '—'}
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-                  <CategoryPill category={t.category} />
-                  <span style={{ fontSize: 11, color: T.textMid }}>{relTime(t.created_at)}</span>
-                </div>
+        ) : recentTasks.map((t, i) => (
+          <div key={t.id} style={{
+            padding: '14px 20px',
+            borderBottom: i < recentTasks.length - 1 ? `1px solid ${T.border}` : 'none',
+            display: 'flex', alignItems: 'flex-start', gap: 12,
+          }}>
+            <StatusDot status={t.status} />
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 13, color: T.text, lineHeight: 1.4, marginBottom: 5, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                {t.full_message || t.summary || '—'}
               </div>
-              <span style={{ fontSize: 11, color: t.status === 'done' ? T.green : T.amber, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0, fontFamily: T.mono }}>
-                {t.status}
-              </span>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <CategoryPill category={t.category} />
+                <span style={{ fontSize: 11, color: T.textMid }}>{relTime(t.created_at)}</span>
+              </div>
             </div>
-          ))
-        )}
+            <span style={{ fontSize: 11, color: t.status === 'done' ? T.green : T.amber, fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', flexShrink: 0, fontFamily: T.mono }}>
+              {t.status}
+            </span>
+          </div>
+        ))}
       </div>
     </div>
   );
 }
 
 // ─── SETTINGS VIEW ────────────────────────────────────────────
+// BUG FIX: Field is defined inside SettingsView but uses local `values` state
+// and individual setters to avoid re-render losing focus on every keystroke.
 function SettingsView({ customer, onUpdate }) {
-  const [form, setForm] = useState({
-    bar_name:          customer?.bar_name          || '',
-    contact_name:      customer?.contact_name      || '',
-    phone:             customer?.phone             || '',
-    email:             customer?.email             || '',
-    address:           customer?.address           || '',
-    instagram_handle:  customer?.instagram_handle  || '',
-    facebook_handle:   customer?.facebook_handle   || '',
-    tiktok_handle:     customer?.tiktok_handle     || '',
-    twitter_handle:    customer?.twitter_handle    || '',
-    brand_voice:       customer?.brand_voice       || '',
-  });
-  const [saving, setSaving]   = useState(false);
-  const [saved, setSaved]     = useState(false);
-  const [feedback, setFeedback] = useState('');
-  const [fbSent, setFbSent]   = useState(false);
+  // Use individual state vars instead of a form object to prevent focus loss
+  const [barName,       setBarName]       = useState(customer?.bar_name          || '');
+  const [contactName,   setContactName]   = useState(customer?.contact_name      || '');
+  const [phone,         setPhone]         = useState(customer?.phone             || '');
+  const [email,         setEmail]         = useState(customer?.email             || '');
+  const [address,       setAddress]       = useState(customer?.address           || '');
+  const [instagram,     setInstagram]     = useState(customer?.instagram_handle  || '');
+  const [facebook,      setFacebook]      = useState(customer?.facebook_handle   || '');
+  const [tiktok,        setTiktok]        = useState(customer?.tiktok_handle     || '');
+  const [twitter,       setTwitter]       = useState(customer?.twitter_handle    || '');
+  const [brandVoice,    setBrandVoice]    = useState(customer?.brand_voice       || '');
+  const [feedback,      setFeedback]      = useState('');
+  const [saving,        setSaving]        = useState(false);
+  const [saved,         setSaved]         = useState(false);
+  const [fbSent,        setFbSent]        = useState(false);
 
   const inp = {
     width: '100%', padding: '10px 14px',
@@ -361,10 +325,15 @@ function SettingsView({ customer, onUpdate }) {
   const save = async () => {
     if (!customer?.id) return;
     setSaving(true);
-    const { error } = await supabase.from('customers').update(form).eq('id', customer.id);
+    const updates = {
+      bar_name: barName, contact_name: contactName, phone, email, address,
+      instagram_handle: instagram, facebook_handle: facebook,
+      tiktok_handle: tiktok, twitter_handle: twitter, brand_voice: brandVoice,
+    };
+    const { error } = await supabase.from('customers').update(updates).eq('id', customer.id);
     if (!error) {
       setSaved(true);
-      onUpdate?.({ ...customer, ...form });
+      onUpdate?.({ ...customer, ...updates });
       setTimeout(() => setSaved(false), 2500);
     }
     setSaving(false);
@@ -373,25 +342,12 @@ function SettingsView({ customer, onUpdate }) {
   const sendFeedback = async () => {
     if (!feedback.trim()) return;
     await fetch(`${BOT_URL}/api/send-email`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        to: 'ryan@getsidecarhq.com',
-        subject: `Portal feedback from ${customer?.bar_name || customer?.email}`,
-        body: `From: ${customer?.bar_name} (${customer?.email})\n\n${feedback}`,
-      }),
+      method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ to: 'ryan@getsidecarhq.com', subject: `Portal feedback from ${customer?.bar_name || customer?.email}`, body: `From: ${customer?.bar_name} (${customer?.email})\n\n${feedback}` }),
     });
-    setFbSent(true);
-    setFeedback('');
+    setFbSent(true); setFeedback('');
     setTimeout(() => setFbSent(false), 3000);
   };
-
-  const Field = ({ label, k, type = 'text', placeholder = '' }) => (
-    <div>
-      <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</label>
-      <input type={type} value={form[k]} onChange={e => setForm({ ...form, [k]: e.target.value })} placeholder={placeholder} style={inp} />
-    </div>
-  );
 
   const Section = ({ title, children }) => (
     <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: '20px 24px', marginBottom: 16 }}>
@@ -402,25 +358,49 @@ function SettingsView({ customer, onUpdate }) {
 
   return (
     <div style={{ maxWidth: 580 }}>
-
       <Section title="Bar Profile">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <Field label="Bar Name"     k="bar_name"     placeholder="The Velvet Room" />
-          <Field label="Contact Name" k="contact_name" placeholder="Your name" />
-          <Field label="Phone"        k="phone"        type="tel" placeholder="+1 (555) 555-5555" />
-          <Field label="Email"        k="email"        type="email" placeholder="you@yourbar.com" />
+          <div>
+            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Bar Name</label>
+            <input value={barName} onChange={e => setBarName(e.target.value)} placeholder="The Velvet Room" style={inp} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Contact Name</label>
+            <input value={contactName} onChange={e => setContactName(e.target.value)} placeholder="Your name" style={inp} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Phone</label>
+            <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} placeholder="+1 (555) 555-5555" style={inp} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Email</label>
+            <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@yourbar.com" style={inp} />
+          </div>
           <div style={{ gridColumn: '1 / -1' }}>
-            <Field label="Address" k="address" placeholder="123 Main St, New York, NY" />
+            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Address</label>
+            <input value={address} onChange={e => setAddress(e.target.value)} placeholder="123 Main St, New York, NY" style={inp} />
           </div>
         </div>
       </Section>
 
       <Section title="Social Handles">
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <Field label="Instagram"  k="instagram_handle" placeholder="@yourbar" />
-          <Field label="TikTok"     k="tiktok_handle"    placeholder="@yourbar" />
-          <Field label="Facebook"   k="facebook_handle"  placeholder="yourbar" />
-          <Field label="Twitter / X" k="twitter_handle"  placeholder="@yourbar" />
+          <div>
+            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Instagram</label>
+            <input value={instagram} onChange={e => setInstagram(e.target.value)} placeholder="@yourbar" style={inp} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>TikTok</label>
+            <input value={tiktok} onChange={e => setTiktok(e.target.value)} placeholder="@yourbar" style={inp} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Facebook</label>
+            <input value={facebook} onChange={e => setFacebook(e.target.value)} placeholder="yourbar" style={inp} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Twitter / X</label>
+            <input value={twitter} onChange={e => setTwitter(e.target.value)} placeholder="@yourbar" style={inp} />
+          </div>
         </div>
         <div style={{ marginTop: 10, fontSize: 12, color: T.textMid, lineHeight: 1.5 }}>
           Sidecar uses your social handles to match your existing aesthetic when creating content.
@@ -430,29 +410,24 @@ function SettingsView({ customer, onUpdate }) {
       <Section title="Brand Voice">
         <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Describe your vibe</label>
         <textarea
-          value={form.brand_voice}
-          onChange={e => setForm({ ...form, brand_voice: e.target.value })}
-          placeholder="e.g. Dark and moody craft cocktail bar. Sophisticated but approachable. Think speakeasy vibes. Our regulars are industry people and creative types..."
+          value={brandVoice}
+          onChange={e => setBrandVoice(e.target.value)}
+          placeholder="e.g. Dark and moody craft cocktail bar. Sophisticated but approachable. Think speakeasy vibes..."
           rows={4}
           style={{ ...inp, resize: 'vertical', lineHeight: 1.6 }}
         />
-        <div style={{ marginTop: 8, fontSize: 12, color: T.textMid }}>
-          The more specific, the better. This shapes everything Sidecar writes for you.
-        </div>
+        <div style={{ marginTop: 8, fontSize: 12, color: T.textMid }}>The more specific, the better. This shapes everything Sidecar writes for you.</div>
       </Section>
 
-      <div style={{ display: 'flex', gap: 10, marginBottom: 32 }}>
+      <div style={{ marginBottom: 32 }}>
         <button onClick={save} disabled={saving} style={{
           padding: '11px 24px', background: saved ? T.greenLo : T.accent,
           color: saved ? T.green : '#fff', border: saved ? `1px solid ${T.green}44` : 'none',
           borderRadius: 8, fontSize: 14, fontWeight: 700, cursor: saving ? 'wait' : 'pointer',
           opacity: saving ? 0.7 : 1, fontFamily: T.sans, transition: 'all 0.2s',
-        }}>
-          {saving ? 'Saving...' : saved ? '✓ Saved' : 'Save Changes'}
-        </button>
+        }}>{saving ? 'Saving...' : saved ? '✓ Saved' : 'Save Changes'}</button>
       </div>
 
-      {/* Feedback */}
       <Section title="Send Feedback">
         <textarea
           value={feedback}
@@ -465,35 +440,42 @@ function SettingsView({ customer, onUpdate }) {
           padding: '10px 20px', background: T.surfaceUp, color: T.text,
           border: `1px solid ${T.borderHi}`, borderRadius: 8, fontSize: 13,
           fontWeight: 600, cursor: 'pointer', fontFamily: T.sans,
-        }}>
-          {fbSent ? '✓ Sent — thanks!' : 'Send Feedback'}
-        </button>
+        }}>{fbSent ? '✓ Sent — thanks!' : 'Send Feedback'}</button>
       </Section>
-
     </div>
   );
 }
 
 // ─── PLAN VIEW ────────────────────────────────────────────────
+// Updated pricing: $299 / $799 / $1,999. Upgrade button links to /upgrade page.
 function PlanView({ customer }) {
   const current = customer?.subscription_tier || 'trial';
   const tiers = [
-    { key: 'the_well',      name: 'The Well',      price: '$500',   period: '/mo', posts: 8,   desc: 'SMS bot, content creation, review responses, ordering.' },
-    { key: 'the_double',    name: 'The Double',     price: '$1,500', period: '/mo', posts: 20,  desc: 'Everything in The Well plus hiring, events, image gen, social automation.' },
-    { key: 'the_full_pour', name: 'The Full Pour',  price: '$2,500', period: '/mo', posts: '∞', desc: 'Full automation suite. Unlimited everything. Dedicated support.' },
+    { key: 'the_well',      name: 'The Well',      price: '$299',   period: '/mo', posts: 8,   desc: 'SMS bot, content creation, review responses, ordering.' },
+    { key: 'the_double',    name: 'The Double',     price: '$799',   period: '/mo', posts: 20,  desc: 'Everything in The Well plus hiring, events, image gen, social automation.' },
+    { key: 'the_full_pour', name: 'The Full Pour',  price: '$1,999', period: '/mo', posts: '∞', desc: 'Full automation suite. Unlimited everything. Dedicated support.' },
   ];
 
   return (
     <div style={{ maxWidth: 580 }}>
-      <div style={{ marginBottom: 24 }}>
-        <div style={{ fontSize: 11, color: T.textMid, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Current Plan</div>
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 16px', borderRadius: 8, background: planMeta(current).bg }}>
-          <span style={{ width: 8, height: 8, borderRadius: '50%', background: planMeta(current).color }} />
-          <span style={{ fontSize: 16, fontWeight: 700, color: planMeta(current).color, fontFamily: T.mono }}>{planMeta(current).label}</span>
+      <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 12 }}>
+        <div>
+          <div style={{ fontSize: 11, color: T.textMid, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 8 }}>Current Plan</div>
+          <div style={{ display: 'inline-flex', alignItems: 'center', gap: 10, padding: '8px 16px', borderRadius: 8, background: planMeta(current).bg }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: planMeta(current).color }} />
+            <span style={{ fontSize: 16, fontWeight: 700, color: planMeta(current).color, fontFamily: T.mono }}>{planMeta(current).label}</span>
+          </div>
         </div>
+        {(current === 'trial' || current === 'churned') && (
+          <a href="/upgrade" style={{
+            padding: '10px 20px', background: T.accent, color: '#fff',
+            borderRadius: 8, fontSize: 14, fontWeight: 700,
+            textDecoration: 'none', fontFamily: T.sans,
+          }}>Upgrade Now →</a>
+        )}
       </div>
 
-      <div style={{ display: 'grid', gap: 14 }}>
+      <div style={{ display: 'grid', gap: 14, marginBottom: 20 }}>
         {tiers.map(tier => {
           const isActive = current === tier.key;
           return (
@@ -517,15 +499,22 @@ function PlanView({ customer }) {
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontSize: 24, fontWeight: 700, color: T.text, fontFamily: T.mono }}>{tier.price}</div>
                 <div style={{ fontSize: 12, color: T.textMid }}>{tier.period}</div>
+                {!isActive && (
+                  <a href="/upgrade" style={{
+                    display: 'inline-block', marginTop: 8, padding: '5px 14px',
+                    background: T.accent, color: '#fff', borderRadius: 6,
+                    fontSize: 12, fontWeight: 700, textDecoration: 'none', fontFamily: T.sans,
+                  }}>Select</a>
+                )}
               </div>
             </div>
           );
         })}
       </div>
 
-      <div style={{ marginTop: 20, padding: '16px 20px', background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10 }}>
+      <div style={{ padding: '16px 20px', background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10 }}>
         <div style={{ fontSize: 13, color: T.textMid }}>
-          To upgrade or make changes to your plan, text Sidecar or email{' '}
+          No contracts. Cancel anytime. Questions?{' '}
           <a href="mailto:ryan@getsidecarhq.com" style={{ color: T.accent, textDecoration: 'none' }}>ryan@getsidecarhq.com</a>
         </div>
       </div>
@@ -540,7 +529,6 @@ export default function SidecarPortal() {
   const [customer, setCustomer] = useState(null);
   const [tasks, setTasks]       = useState([]);
   const [view, setView]         = useState('account');
-  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -596,63 +584,39 @@ export default function SidecarPortal() {
   return (
     <div style={{ minHeight: '100vh', background: T.bg, fontFamily: T.sans, color: T.text }}>
 
-      {/* Top nav */}
+      {/* Top nav — single nav bar, no duplicate mobile strip */}
       <div style={{
         height: 56, borderBottom: `1px solid ${T.border}`,
         display: 'flex', alignItems: 'center',
         padding: '0 24px', gap: 24,
         background: T.surface, position: 'sticky', top: 0, zIndex: 100,
       }}>
-        {/* Logo */}
         <div style={{ fontSize: 16, fontWeight: 700, fontFamily: T.mono, letterSpacing: '0.1em', color: T.text, flexShrink: 0 }}>
           SIDECAR
         </div>
 
-        {/* Nav — desktop */}
-        <div style={{ display: 'flex', gap: 4, flex: 1 }} className="desktop-nav">
+        {/* Nav pills */}
+        <div style={{ display: 'flex', gap: 4, flex: 1 }}>
           {navItems.map(n => (
             <button key={n.id} onClick={() => setView(n.id)} style={{
-              padding: '6px 14px', background: view === n.id ? T.accentLo : 'transparent',
+              padding: '6px 14px',
+              background: view === n.id ? T.accentLo : 'transparent',
               color: view === n.id ? T.accentHi : T.textMid,
               border: view === n.id ? `1px solid ${T.accent}33` : '1px solid transparent',
               borderRadius: 7, cursor: 'pointer', fontSize: 14, fontWeight: 500,
               fontFamily: T.sans, transition: 'all 0.15s',
-            }}>
-              {n.label}
-            </button>
+            }}>{n.label}</button>
           ))}
         </div>
 
-        {/* Right side */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginLeft: 'auto' }}>
-          <span style={{ fontSize: 12, color: T.textMid, display: 'none' }} className="bar-name">{customer?.bar_name}</span>
+          <span style={{ fontSize: 12, color: T.textMid }}>{customer?.bar_name}</span>
           <button onClick={logout} style={{
             padding: '6px 14px', background: 'transparent', color: T.textMid,
             border: `1px solid ${T.border}`, borderRadius: 7,
             cursor: 'pointer', fontSize: 13, fontFamily: T.sans,
-          }}>
-            Sign Out
-          </button>
+          }}>Sign Out</button>
         </div>
-      </div>
-
-      {/* Mobile nav strip */}
-      <div style={{
-        display: 'flex', borderBottom: `1px solid ${T.border}`,
-        background: T.bg, overflowX: 'auto',
-        padding: '0 16px',
-      }}>
-        {navItems.map(n => (
-          <button key={n.id} onClick={() => setView(n.id)} style={{
-            padding: '12px 16px', background: 'transparent',
-            color: view === n.id ? T.accentHi : T.textMid,
-            borderBottom: view === n.id ? `2px solid ${T.accent}` : '2px solid transparent',
-            border: 'none', cursor: 'pointer', fontSize: 14, fontWeight: 500,
-            fontFamily: T.sans, whiteSpace: 'nowrap', flexShrink: 0,
-          }}>
-            {n.label}
-          </button>
-        ))}
       </div>
 
       {/* Content */}
@@ -664,14 +628,10 @@ export default function SidecarPortal() {
         @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
         * { box-sizing: border-box; }
         body { margin: 0; background: ${T.bg}; }
-        input, textarea, button { font-family: '${T.sans}'; }
-        textarea { font-family: ${T.sans}; }
+        input, textarea, button { font-family: ${T.sans}; }
         ::-webkit-scrollbar { width: 6px; height: 6px; }
         ::-webkit-scrollbar-track { background: ${T.bg}; }
         ::-webkit-scrollbar-thumb { background: ${T.borderHi}; border-radius: 3px; }
-        @media (max-width: 600px) {
-          .desktop-nav { display: none !important; }
-        }
       `}</style>
     </div>
   );
