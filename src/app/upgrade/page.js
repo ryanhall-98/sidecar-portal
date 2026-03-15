@@ -11,7 +11,7 @@ const T = {
   text:     '#f0f0f0', textMid: '#686868', textDim: '#2e2e2e',
   accent:   '#6366f1', accentLo: '#1a1935', accentHi: '#818cf8',
   green:    '#22c55e', greenLo: '#0a1f12',
-  amber:    '#f59e0b', amberLo: '#1f1508',
+  amber:    '#6366f1', amberLo: '#1e1b4b',
   red:      '#ef4444', redLo: '#1f0a0a',
   blue:     '#38bdf8', blueLo: '#0a1a2f',
   mono:     "'Space Mono', monospace",
