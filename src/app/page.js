@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/lib/supabase';
 
 const BOT_URL = process.env.NEXT_PUBLIC_BOT_URL || 'https://railway-up-production-f5a0.up.railway.app';
@@ -298,6 +298,13 @@ const FIELD_STYLE = {
   outline: "none", boxSizing: "border-box", fontFamily: T.sans,
 };
 
+const Section = ({ title, children }) => (
+  <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: '20px 24px', marginBottom: 16 }}>
+    <div style={{ fontSize: 13, fontWeight: 600, color: T.textMid, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 18 }}>{title}</div>
+    {children}
+  </div>
+);
+
 const SettingsView = React.memo(function SettingsView({ customer, onUpdate }) {
   // Use individual state vars instead of a form object to prevent focus loss
   const [barName,       setBarName]       = useState(customer?.bar_name          || '');
@@ -342,12 +349,7 @@ const SettingsView = React.memo(function SettingsView({ customer, onUpdate }) {
     setTimeout(() => setFbSent(false), 3000);
   };
 
-  const Section = ({ title, children }) => (
-    <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: '20px 24px', marginBottom: 16 }}>
-      <div style={{ fontSize: 13, fontWeight: 600, color: T.textMid, textTransform: 'uppercase', letterSpacing: '0.07em', marginBottom: 18 }}>{title}</div>
-      {children}
-    </div>
-  );
+  // Section moved to module level to fix focus loss bug
 
   return (
     <div style={{ maxWidth: 580 }}>
