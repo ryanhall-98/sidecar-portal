@@ -80,7 +80,8 @@ export default function UpgradePage() {
   }, []);
 
   const checkout = async (plan) => {
-    if (!customer?.id) { setErr("Still loading your account — please wait a moment and try again."); return; }
+    if (loading) { setErr("Still loading your account — please wait a moment and try again."); return; }
+    if (!customer?.id) { setErr("No account found. Please sign in first."); return; }
     setCheckingOut(plan.key);
     setErr('');
     try {
@@ -108,7 +109,8 @@ export default function UpgradePage() {
   };
 
   const manageBilling = async () => {
-    if (!customer?.id) { setErr("Still loading your account — please wait a moment and try again."); return; }
+    if (loading) { setErr("Still loading your account — please wait a moment and try again."); return; }
+    if (!customer?.id) { setErr("No account found. Please sign in first."); return; }
     setManagingBilling(true);
     try {
       const r = await fetch(`${BOT_URL}/api/billing-portal`, {
@@ -172,7 +174,7 @@ export default function UpgradePage() {
                 Current plan: <span style={{ color: T.text, fontWeight: 600 }}>{PLANS.find(p => p.key === currentTier)?.name || currentTier}</span>
               </span>
               {isPaying && (
-                <button onClick={manageBilling} disabled={managingBilling} style={{
+                <button onClick={manageBilling} disabled={loading || managingBilling} style={{
                   marginLeft: 8, padding: '3px 10px', background: 'transparent',
                   color: T.accent, border: `1px solid ${T.accent}44`,
                   borderRadius: 5, fontSize: 12, cursor: 'pointer', fontFamily: T.sans,
@@ -263,15 +265,15 @@ export default function UpgradePage() {
                 {/* CTA */}
                 <button
                   onClick={() => !isCurrent && checkout(plan)}
-                  disabled={isCurrent || !!checkingOut}
+                  disabled={loading || isCurrent || !!checkingOut}
                   style={{
                     width: '100%', padding: '13px 0',
                     background: isCurrent ? T.surfaceUp : plan.color,
                     color: isCurrent ? T.textMid : '#fff',
                     border: isCurrent ? `1px solid ${T.border}` : 'none',
                     borderRadius: 9, fontSize: 14, fontWeight: 700,
-                    cursor: isCurrent || checkingOut ? 'default' : 'pointer',
-                    opacity: checkingOut && !isLoading ? 0.5 : 1,
+                    cursor: loading || isCurrent || checkingOut ? 'default' : 'pointer',
+                    opacity: (checkingOut && !isLoading) || loading ? 0.5 : 1,
                     fontFamily: T.sans, transition: 'opacity 0.15s',
                   }}
                 >
