@@ -311,7 +311,6 @@ const SettingsView = React.memo(function SettingsView({ customer, onUpdate }) {
   const [contactName,   setContactName]   = useState(customer?.contact_name      || '');
   const [phone,         setPhone]         = useState(customer?.phone             || '');
   const [email,         setEmail]         = useState(customer?.email             || '');
-  const [address,       setAddress]       = useState(customer?.address           || '');
   const [instagram,     setInstagram]     = useState(customer?.instagram_handle  || '');
   const [facebook,      setFacebook]      = useState(customer?.facebook_handle   || '');
   const [tiktok,        setTiktok]        = useState(customer?.tiktok_handle     || '');
@@ -326,7 +325,7 @@ const SettingsView = React.memo(function SettingsView({ customer, onUpdate }) {
     if (!customer?.id) return;
     setSaving(true);
     const updates = {
-      bar_name: barName, contact_name: contactName, phone, email, address,
+      bar_name: barName, contact_name: contactName, phone, email,
       instagram_handle: instagram, facebook_handle: facebook,
       tiktok_handle: tiktok, twitter_handle: twitter, brand_voice: brandVoice,
     };
@@ -343,7 +342,7 @@ const SettingsView = React.memo(function SettingsView({ customer, onUpdate }) {
     if (!feedback.trim()) return;
     await fetch(`${BOT_URL}/api/send-email`, {
       method: 'POST', headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ to: 'ryan@getsidecarhq.com', subject: `Portal feedback from ${customer?.bar_name || customer?.email}`, body: `From: ${customer?.bar_name} (${customer?.email})\n\n${feedback}` }),
+      body: JSON.stringify({ to: 'ryan@sidecarhq.cc', subject: `Portal feedback from ${customer?.bar_name || customer?.email}`, body: `From: ${customer?.bar_name} (${customer?.email})\n\n${feedback}` }),
     });
     setFbSent(true); setFeedback('');
     setTimeout(() => setFbSent(false), 3000);
@@ -371,10 +370,7 @@ const SettingsView = React.memo(function SettingsView({ customer, onUpdate }) {
             <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Email</label>
             <input type="email" value={email} onChange={e => setEmail(e.target.value)} placeholder="you@yourbar.com" style={FIELD_STYLE} />
           </div>
-          <div style={{ gridColumn: '1 / -1' }}>
-            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Address</label>
-            <input value={address} onChange={e => setAddress(e.target.value)} placeholder="123 Main St, New York, NY" style={FIELD_STYLE} />
-          </div>
+
         </div>
       </Section>
 
@@ -510,7 +506,7 @@ function PlanView({ customer }) {
       <div style={{ padding: '16px 20px', background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10 }}>
         <div style={{ fontSize: 13, color: T.textMid }}>
           No contracts. Cancel anytime. Questions?{' '}
-          <a href="mailto:ryan@getsidecarhq.com" style={{ color: T.accent, textDecoration: 'none' }}>ryan@getsidecarhq.com</a>
+          <a href="mailto:ryan@sidecarhq.cc" style={{ color: T.accent, textDecoration: 'none' }}>ryan@sidecarhq.cc</a>
         </div>
       </div>
     </div>
