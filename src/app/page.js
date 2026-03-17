@@ -100,7 +100,7 @@ function AuthScreen({ onAuth }) {
         const { data, error } = await supabase.auth.signUp({ email, password });
         if (error) throw error;
         if (data.user) {
-          await supabase.from('customers').insert({ user_id: data.user.id, bar_name: barName || 'My Bar', email, phone });
+          await supabase.from('customers').insert({ user_id: data.user.id, bar_name: barName || 'My Bar', email, phone, consent_given: true, consent_timestamp: new Date().toISOString(), consent_method: 'portal_signup' });
           if (data.session) {
             const { data: c } = await supabase.from('customers').select('*').eq('user_id', data.user.id);
             onAuth({ user: data.user, customer: c?.[0] });
@@ -316,6 +316,8 @@ const SettingsView = React.memo(function SettingsView({ customer, onUpdate }) {
   const [tiktok,        setTiktok]        = useState(customer?.tiktok_handle     || '');
   const [twitter,       setTwitter]       = useState(customer?.twitter_handle    || '');
   const [brandVoice,    setBrandVoice]    = useState(customer?.brand_voice       || '');
+  const [distributorName,  setDistributorName]  = useState(customer?.distributor_name  || '');
+  const [distributorEmail, setDistributorEmail] = useState(customer?.distributor_email || '');
   const [feedback,      setFeedback]      = useState('');
   const [saving,        setSaving]        = useState(false);
   const [saved,         setSaved]         = useState(false);
@@ -328,6 +330,7 @@ const SettingsView = React.memo(function SettingsView({ customer, onUpdate }) {
       bar_name: barName, contact_name: contactName, phone, email,
       instagram_handle: instagram, facebook_handle: facebook,
       tiktok_handle: tiktok, twitter_handle: twitter, brand_voice: brandVoice,
+      distributor_name: distributorName, distributor_email: distributorEmail,
     };
     const { error } = await supabase.from('customers').update(updates).eq('id', customer.id);
     if (!error) {
@@ -408,6 +411,22 @@ const SettingsView = React.memo(function SettingsView({ customer, onUpdate }) {
           style={{ ...FIELD_STYLE, resize: 'vertical', lineHeight: 1.6 }}
         />
         <div style={{ marginTop: 8, fontSize: 12, color: T.textMid }}>The more specific, the better. This shapes everything Sidecar writes for you.</div>
+      </Section>
+
+      <Section title="Distributor">
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Distributor Name</label>
+            <input value={distributorName} onChange={e => setDistributorName(e.target.value)} placeholder="e.g. Southern Glazer's" style={FIELD_STYLE} />
+          </div>
+          <div>
+            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Distributor Email</label>
+            <input type="email" value={distributorEmail} onChange={e => setDistributorEmail(e.target.value)} placeholder="rep@distributor.com" style={FIELD_STYLE} />
+          </div>
+        </div>
+        <div style={{ marginTop: 10, fontSize: 12, color: T.textMid, lineHeight: 1.5 }}>
+          Sidecar sends order emails directly to this address when you approve a PO.
+        </div>
       </Section>
 
       <div style={{ marginBottom: 32 }}>
