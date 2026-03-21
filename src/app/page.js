@@ -413,21 +413,6 @@ const SettingsView = React.memo(function SettingsView({ customer, onUpdate }) {
         <div style={{ marginTop: 8, fontSize: 12, color: T.textMid }}>The more specific, the better. This shapes everything Sidecar writes for you.</div>
       </Section>
 
-      <Section title="Distributor">
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
-          <div>
-            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Distributor Name</label>
-            <input value={distributorName} onChange={e => setDistributorName(e.target.value)} placeholder="e.g. Southern Glazer's" style={FIELD_STYLE} />
-          </div>
-          <div>
-            <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Distributor Email</label>
-            <input type="email" value={distributorEmail} onChange={e => setDistributorEmail(e.target.value)} placeholder="rep@distributor.com" style={FIELD_STYLE} />
-          </div>
-        </div>
-        <div style={{ marginTop: 10, fontSize: 12, color: T.textMid, lineHeight: 1.5 }}>
-          Sidecar sends order emails directly to this address when you approve a PO.
-        </div>
-      </Section>
 
       <div style={{ marginBottom: 32 }}>
         <button onClick={save} disabled={saving} style={{
@@ -455,6 +440,226 @@ const SettingsView = React.memo(function SettingsView({ customer, onUpdate }) {
     </div>
   );
 });
+
+
+// ─── INTEGRATIONS VIEW ────────────────────────────────────────
+function Tooltip({ text }) {
+  const [show, setShow] = React.useState(false);
+  return (
+    <span style={{ position: 'relative', display: 'inline-block', marginLeft: 6 }}>
+      <span
+        onMouseEnter={() => setShow(true)}
+        onMouseLeave={() => setShow(false)}
+        style={{
+          display: 'inline-flex', alignItems: 'center', justifyContent: 'center',
+          width: 16, height: 16, borderRadius: '50%', background: T.surfaceUp,
+          border: `1px solid ${T.borderHi}`, color: T.textMid, fontSize: 10,
+          cursor: 'help', fontWeight: 700, flexShrink: 0,
+        }}>?</span>
+      {show && (
+        <div style={{
+          position: 'absolute', bottom: '120%', left: '50%', transform: 'translateX(-50%)',
+          background: T.surfaceUp, border: `1px solid ${T.borderHi}`, borderRadius: 8,
+          padding: '10px 14px', width: 260, fontSize: 12, color: T.textMid, lineHeight: 1.6,
+          zIndex: 999, boxShadow: '0 8px 32px rgba(0,0,0,0.6)',
+        }}>{text}</div>
+      )}
+    </span>
+  );
+}
+
+function IntegrationCard({ emoji, name, description, unlocks, connected, fieldLabel, fieldKey, fieldValue, onSave, tooltip, comingSoon }) {
+  const [val, setVal] = React.useState(fieldValue || '');
+  const [saving, setSaving] = React.useState(false);
+  const [saved, setSaved] = React.useState(false);
+
+  const handleSave = async () => {
+    if (!val.trim() || !onSave) return;
+    setSaving(true);
+    await onSave(fieldKey, val.trim());
+    setSaving(false);
+    setSaved(true);
+    setTimeout(() => setSaved(false), 2500);
+  };
+
+  return (
+    <div style={{
+      background: comingSoon ? T.bg : T.surface,
+      border: `1px solid ${connected ? T.accent + '44' : T.border}`,
+      borderRadius: 12, padding: '18px 20px',
+      opacity: comingSoon ? 0.5 : 1,
+    }}>
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <span style={{ fontSize: 22 }}>{emoji}</span>
+          <div>
+            <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>{name}</div>
+            <div style={{ fontSize: 12, color: T.textMid, marginTop: 2 }}>{description}</div>
+          </div>
+        </div>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          {comingSoon && (
+            <span style={{ fontSize: 10, padding: '2px 8px', borderRadius: 4, background: T.surfaceUp, color: T.textMid, fontWeight: 600, fontFamily: T.mono, textTransform: 'uppercase' }}>Soon</span>
+          )}
+          {!comingSoon && (
+            <span style={{
+              fontSize: 10, padding: '3px 10px', borderRadius: 4, fontWeight: 700,
+              fontFamily: T.mono, textTransform: 'uppercase',
+              background: connected ? T.greenLo : T.surfaceUp,
+              color: connected ? T.green : T.textMid,
+              border: `1px solid ${connected ? T.green + '33' : T.border}`,
+            }}>{connected ? '● Connected' : '○ Not Connected'}</span>
+          )}
+        </div>
+      </div>
+
+      {unlocks && (
+        <div style={{ fontSize: 12, color: T.accentHi, marginBottom: 12, paddingLeft: 32 }}>
+          ↳ {unlocks}
+        </div>
+      )}
+
+      {!comingSoon && fieldLabel && (
+        <div style={{ paddingLeft: 32 }}>
+          <div style={{ display: 'flex', alignItems: 'center', marginBottom: 6 }}>
+            <label style={{ fontSize: 11, color: T.textMid, textTransform: 'uppercase', letterSpacing: '0.06em', fontWeight: 600 }}>{fieldLabel}</label>
+            {tooltip && <Tooltip text={tooltip} />}
+          </div>
+          <div style={{ display: 'flex', gap: 8 }}>
+            <input
+              value={val}
+              onChange={e => setVal(e.target.value)}
+              placeholder={connected ? '(saved)' : 'Enter value...'}
+              style={{
+                flex: 1, padding: '8px 12px', background: T.bg,
+                border: `1px solid ${T.border}`, borderRadius: 7,
+                color: T.text, fontSize: 13, outline: 'none', fontFamily: T.sans,
+              }}
+            />
+            <button onClick={handleSave} disabled={saving || !val.trim()} style={{
+              padding: '8px 16px', background: saved ? T.greenLo : T.accent,
+              color: saved ? T.green : '#fff', border: saved ? `1px solid ${T.green}44` : 'none',
+              borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: 'pointer',
+              fontFamily: T.sans, opacity: (!val.trim() || saving) ? 0.5 : 1,
+            }}>{saving ? '...' : saved ? '✓' : 'Save'}</button>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function IntegrationsSection({ title, children }) {
+  return (
+    <div style={{ marginBottom: 28 }}>
+      <div style={{ fontSize: 11, fontWeight: 700, color: T.textMid, textTransform: 'uppercase', letterSpacing: '0.1em', marginBottom: 12 }}>{title}</div>
+      <div style={{ display: 'grid', gap: 10 }}>{children}</div>
+    </div>
+  );
+}
+
+function IntegrationsView({ customer, onUpdate }) {
+  const [distributorName,  setDistributorName]  = React.useState(customer?.distributor_name  || '');
+  const [distributorEmail, setDistributorEmail] = React.useState(customer?.distributor_email || '');
+  const [distSaving, setDistSaving] = React.useState(false);
+  const [distSaved,  setDistSaved]  = React.useState(false);
+
+  const saveField = async (key, value) => {
+    if (!customer?.id) return;
+    const updates = { [key]: value };
+    const { error } = await supabase.from('customers').update(updates).eq('id', customer.id);
+    if (!error) onUpdate?.({ ...customer, ...updates });
+  };
+
+  const saveDistributor = async () => {
+    if (!customer?.id) return;
+    setDistSaving(true);
+    const updates = { distributor_name: distributorName, distributor_email: distributorEmail };
+    const { error } = await supabase.from('customers').update(updates).eq('id', customer.id);
+    if (!error) { onUpdate?.({ ...customer, ...updates }); setDistSaved(true); setTimeout(() => setDistSaved(false), 2500); }
+    setDistSaving(false);
+  };
+
+  return (
+    <div style={{ maxWidth: 580 }}>
+
+      <IntegrationsSection title="Reviews">
+        <IntegrationCard
+          emoji="🗺️" name="Google Reviews" description="Daily review monitoring + AI-drafted responses"
+          unlocks="We check Google daily and draft responses for every new review"
+          connected={!!customer?.google_place_id}
+          fieldLabel="Google Place ID" fieldKey="google_place_id" fieldValue={customer?.google_place_id}
+          onSave={saveField}
+          tooltip={"Go to maps.google.com and search your bar. Click your listing, then look at the URL — copy the string that starts with ChIJ. That's your Place ID."}
+        />
+        <IntegrationCard
+          emoji="⭐" name="Yelp Reviews" description="Daily review monitoring + AI-drafted responses"
+          unlocks="We check Yelp daily and draft responses for every new review"
+          connected={!!customer?.yelp_business_id}
+          fieldLabel="Yelp Business ID" fieldKey="yelp_business_id" fieldValue={customer?.yelp_business_id}
+          onSave={saveField}
+          tooltip={"Go to yelp.com and find your bar. Your Business ID is the slug at the end of your Yelp URL — e.g. if your URL is yelp.com/biz/my-bar-new-york, your ID is my-bar-new-york"}
+        />
+      </IntegrationsSection>
+
+      <IntegrationsSection title="Ordering & Distributors">
+        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: '18px 20px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 14 }}>
+            <span style={{ fontSize: 22 }}>📦</span>
+            <div>
+              <div style={{ fontSize: 15, fontWeight: 700, color: T.text }}>Distributor</div>
+              <div style={{ fontSize: 12, color: T.textMid, marginTop: 2 }}>Order emails sent directly when you approve a PO</div>
+            </div>
+            <span style={{
+              marginLeft: 'auto', fontSize: 10, padding: '3px 10px', borderRadius: 4, fontWeight: 700,
+              fontFamily: T.mono, textTransform: 'uppercase',
+              background: (customer?.distributor_name && customer?.distributor_email) ? T.greenLo : T.surfaceUp,
+              color: (customer?.distributor_name && customer?.distributor_email) ? T.green : T.textMid,
+              border: `1px solid ${(customer?.distributor_name && customer?.distributor_email) ? T.green + '33' : T.border}`,
+            }}>{(customer?.distributor_name && customer?.distributor_email) ? '● Connected' : '○ Not Connected'}</span>
+          </div>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Distributor Name</label>
+              <input value={distributorName} onChange={e => setDistributorName(e.target.value)} placeholder="e.g. Southern Glazer's" style={{ width: '100%', padding: '8px 12px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 7, color: T.text, fontSize: 13, outline: 'none', fontFamily: T.sans, boxSizing: 'border-box' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: 11, color: T.textMid, marginBottom: 5, textTransform: 'uppercase', letterSpacing: '0.06em' }}>Distributor Email</label>
+              <input type="email" value={distributorEmail} onChange={e => setDistributorEmail(e.target.value)} placeholder="rep@distributor.com" style={{ width: '100%', padding: '8px 12px', background: T.bg, border: `1px solid ${T.border}`, borderRadius: 7, color: T.text, fontSize: 13, outline: 'none', fontFamily: T.sans, boxSizing: 'border-box' }} />
+            </div>
+          </div>
+          <button onClick={saveDistributor} disabled={distSaving} style={{
+            padding: '8px 18px', background: distSaved ? T.greenLo : T.accent,
+            color: distSaved ? T.green : '#fff', border: distSaved ? `1px solid ${T.green}44` : 'none',
+            borderRadius: 7, fontSize: 12, fontWeight: 700, cursor: 'pointer', fontFamily: T.sans,
+          }}>{distSaving ? 'Saving...' : distSaved ? '✓ Saved' : 'Save'}</button>
+        </div>
+      </IntegrationsSection>
+
+      <IntegrationsSection title="Point of Sale">
+        <IntegrationCard emoji="🟦" name="Square" description="Sync sales data, inventory movement, menu items" unlocks="Automatic inventory updates + demand forecasting from real sales" connected={false} comingSoon={true} />
+        <IntegrationCard emoji="🍞" name="Toast" description="Full POS integration for restaurant-focused bars" unlocks="Live sales data feeds directly into forecasting" connected={false} comingSoon={true} />
+        <IntegrationCard emoji="💡" name="Lightspeed" description="Sync inventory and sales" connected={false} comingSoon={true} />
+        <IntegrationCard emoji="⚙️" name="Clover" description="Sync sales and menu data" connected={false} comingSoon={true} />
+      </IntegrationsSection>
+
+      <IntegrationsSection title="Reservations">
+        <IntegrationCard emoji="🪑" name="Resy" description="Cover counts, peak times, no-show data" unlocks="Staffing suggestions based on real reservation load" connected={false} comingSoon={true} />
+        <IntegrationCard emoji="📅" name="OpenTable" description="Reservation volume + guest data" connected={false} comingSoon={true} />
+      </IntegrationsSection>
+
+      <IntegrationsSection title="Delivery">
+        <IntegrationCard emoji="🛵" name="DoorDash" description="Order volume, top items, delivery trends" unlocks="Inventory adjustments based on delivery demand" connected={false} comingSoon={true} />
+        <IntegrationCard emoji="🚗" name="Uber Eats" description="Order data + menu performance" connected={false} comingSoon={true} />
+      </IntegrationsSection>
+
+      <IntegrationsSection title="Social">
+        <IntegrationCard emoji="📸" name="Instagram" description="Auto-post approved captions, analyze brand voice from your feed" unlocks="We study your existing posts to match your voice automatically" connected={false} comingSoon={true} />
+      </IntegrationsSection>
+
+    </div>
+  );
+}
 
 // ─── PLAN VIEW ────────────────────────────────────────────────
 // Updated pricing: $299 / $799 / $1,999. Upgrade button links to /upgrade page.
@@ -577,17 +782,19 @@ export default function SidecarPortal() {
   if (!auth) return <AuthScreen onAuth={({ user, customer: c }) => { setAuth(user); setCustomer(c); }} />;
 
   const navItems = [
-    { id: 'account',  label: 'Account'  },
-    { id: 'settings', label: 'Settings' },
-    { id: 'plan',     label: 'Plan'     },
+    { id: 'account',      label: 'Account'      },
+    { id: 'settings',     label: 'Settings'     },
+    { id: 'integrations', label: 'Integrations' },
+    { id: 'plan',         label: 'Plan'         },
   ];
 
   const renderView = () => {
     switch (view) {
-      case 'account':  return <AccountView customer={customer} tasks={tasks} />;
-      case "settings": return <SettingsView key="settings" customer={customer} onUpdate={c => setCustomer(c)} />;
-      case 'plan':     return <PlanView customer={customer} />;
-      default:         return <AccountView customer={customer} tasks={tasks} />;
+      case 'account':      return <AccountView customer={customer} tasks={tasks} />;
+      case 'settings':     return <SettingsView key="settings" customer={customer} onUpdate={c => setCustomer(c)} />;
+      case 'integrations': return <IntegrationsView key="integrations" customer={customer} onUpdate={c => setCustomer(c)} />;
+      case 'plan':         return <PlanView customer={customer} />;
+      default:             return <AccountView customer={customer} tasks={tasks} />;
     }
   };
 
