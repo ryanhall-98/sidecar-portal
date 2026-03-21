@@ -29,7 +29,7 @@ const PLANS = [
     color:     T.accent,
     bg:        T.accentLo,
     desc:      'SMS back office for independent bars.',
-    features:  ['Ordering & vendor emails', 'Google/Yelp review responses', 'Social content creation', '8 posts/week', 'Image generation'],
+    features:  ['Ordering & vendor emails', 'Google/Yelp review responses', 'Social content creation', '8 posts/week', 'Hiring posts'],
   },
   {
     key:       'the_double',
