@@ -197,6 +197,43 @@ function AuthScreen({ onAuth }) {
   );
 }
 
+
+// ─── EXPORT BUTTONS ──────────────────────────────────────────
+function ExportButtons({ customer }) {
+  const [loading, setLoading] = React.useState(null);
+  const BOT = process.env.NEXT_PUBLIC_BOT_URL || 'https://railway-up-production-f5a0.up.railway.app';
+
+  const download = async (type, label) => {
+    if (!customer?.id) return;
+    setLoading(type);
+    try {
+      const url = `/api/export?customer_id=${customer.id}&type=${type}&days=30`;
+      const res = await fetch(url);
+      const blob = await res.blob();
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `sidecar-${type}.csv`;
+      a.click();
+    } catch(e) { console.error(e); }
+    setLoading(null);
+  };
+
+  return (
+    <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginTop: 16 }}>
+      {[['tasks','Tasks (30d)'],['inventory','Inventory'],['messages','Messages (30d)']].map(([type, label]) => (
+        <button key={type} onClick={() => download(type, label)} disabled={loading === type} style={{
+          padding: '7px 14px', background: T.surfaceUp, color: T.textMid,
+          border: `1px solid ${T.borderHi}`, borderRadius: 7, fontSize: 12,
+          fontWeight: 600, cursor: 'pointer', fontFamily: T.mono,
+          opacity: loading === type ? 0.5 : 1,
+        }}>
+          {loading === type ? '...' : `↓ ${label}`}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 // ─── ACCOUNT VIEW ─────────────────────────────────────────────
 function AccountView({ customer, tasks }) {
   const plan = planMeta(customer?.subscription_tier);
@@ -252,8 +289,11 @@ function AccountView({ customer, tasks }) {
         </div>
       </div>
 
+      {/* Export */}
+      <ExportButtons customer={customer} />
+
       {/* Recent tasks */}
-      <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, overflow: 'hidden' }}>
+      <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, overflow: 'hidden', marginTop: 24 }}>
         <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <span style={{ fontSize: 14, fontWeight: 600, color: T.text }}>Recent Activity</span>
           <span style={{ fontSize: 12, color: T.textMid }}>{recentTasks.length} tasks</span>
