@@ -677,24 +677,54 @@ function IntegrationsView({ customer, onUpdate }) {
       </IntegrationsSection>
 
       <IntegrationsSection title="Point of Sale">
-        <IntegrationCard emoji="🟦" name="Square" description="Sync sales data, inventory movement, menu items" unlocks="Automatic inventory updates + demand forecasting from real sales" connected={false} comingSoon={true} />
-        <IntegrationCard emoji="🍞" name="Toast" description="Full POS integration for restaurant-focused bars" unlocks="Live sales data feeds directly into forecasting" connected={false} comingSoon={true} />
-        <IntegrationCard emoji="💡" name="Lightspeed" description="Sync inventory and sales" connected={false} comingSoon={true} />
-        <IntegrationCard emoji="⚙️" name="Clover" description="Sync sales and menu data" connected={false} comingSoon={true} />
+        <IntegrationCard
+          emoji="🟦" name="Square" description="Sync sales data, inventory movement, demand forecasting"
+          unlocks="Velocity forecasting, combo specials, and auto inventory updates from real sales"
+          connected={!!customer?.square_access_token}
+          fieldLabel="Square Access Token" fieldKey="square_access_token" fieldValue={customer?.square_access_token}
+          onSave={saveField}
+          tooltip="In your Square Developer dashboard, create an app and copy the Production Access Token. Also paste your Location ID below if you have multiple locations."/>
+        <IntegrationCard
+          emoji="🍞" name="Toast" description="Full POS integration — sales, labor, menu items"
+          unlocks="Automatic weekly sales reports with revenue, top sellers, pour cost"
+          connected={!!customer?.toast_client_id}
+          fieldLabel="Toast Client ID" fieldKey="toast_client_id" fieldValue={customer?.toast_client_id}
+          onSave={saveField}
+          tooltip="Get your Client ID and Secret from Toast Web → Integrations → API Access. Text us both and your Restaurant GUID to complete setup."/>
+        <IntegrationCard
+          emoji="💡" name="Lightspeed" description="Sync inventory and sales data"
+          unlocks="Sales reports and inventory sync from Lightspeed"
+          connected={!!customer?.lightspeed_api_key}
+          fieldLabel="Lightspeed API Key" fieldKey="lightspeed_api_key" fieldValue={customer?.lightspeed_api_key}
+          onSave={saveField}
+          tooltip="Find your API key in Lightspeed account settings → API Access. Also need your Account ID (the number in your Lightspeed URL)."/>
+        <IntegrationCard
+          emoji="⚙️" name="Clover" description="Sync sales and menu data"
+          unlocks="Sales reports and top item tracking from Clover"
+          connected={!!customer?.clover_api_token}
+          fieldLabel="Clover API Token" fieldKey="clover_api_token" fieldValue={customer?.clover_api_token}
+          onSave={saveField}
+          tooltip="In Clover Developer Dashboard, create an app and copy the API token. Also need your Merchant ID from your Clover URL."/>
       </IntegrationsSection>
 
       <IntegrationsSection title="Reservations">
-        <IntegrationCard emoji="🪑" name="Resy" description="Cover counts, peak times, no-show data" unlocks="Staffing suggestions based on real reservation load" connected={false} comingSoon={true} />
-        <IntegrationCard emoji="📅" name="OpenTable" description="Reservation volume + guest data" connected={false} comingSoon={true} />
+        <IntegrationCard emoji="🪑" name="Resy" description="Cover counts, peak times, no-show data" unlocks="Staffing suggestions based on real reservation load" connected={false} fieldLabel="Resy API Key" fieldKey="resy_api_key" fieldValue={customer?.resy_api_key} onSave={saveField} tooltip="Contact Resy partner support to request API access. Once approved, paste your API key here." />
+        <IntegrationCard emoji="📅" name="OpenTable" description="Reservation volume + guest data" unlocks="Peak time analysis and staffing recommendations" connected={false} fieldLabel="OpenTable Restaurant ID" fieldKey="opentable_restaurant_id" fieldValue={customer?.opentable_restaurant_id} onSave={saveField} tooltip="Find your Restaurant ID in OpenTable for Restaurants → Settings → Restaurant Info." />
       </IntegrationsSection>
 
       <IntegrationsSection title="Delivery">
-        <IntegrationCard emoji="🛵" name="DoorDash" description="Order volume, top items, delivery trends" unlocks="Inventory adjustments based on delivery demand" connected={false} comingSoon={true} />
-        <IntegrationCard emoji="🚗" name="Uber Eats" description="Order data + menu performance" connected={false} comingSoon={true} />
+        <IntegrationCard emoji="🛵" name="DoorDash" description="Order volume, top items, delivery trends" unlocks="Inventory adjustments based on delivery demand" connected={false} fieldLabel="DoorDash Store ID" fieldKey="doordash_store_id" fieldValue={customer?.doordash_store_id} onSave={saveField} tooltip="Find your Store ID in DoorDash Merchant Portal → Store Settings. You'll also need to enable API access through your DoorDash account rep." />
+        <IntegrationCard emoji="🚗" name="Uber Eats" description="Order data + menu performance" unlocks="Menu performance and delivery demand tracking" connected={false} fieldLabel="Uber Eats Store ID" fieldKey="ubereats_store_id" fieldValue={customer?.ubereats_store_id} onSave={saveField} tooltip="Find your Store ID in Uber Eats Manager → Stores. API access requires approval through your Uber Eats account rep." />
       </IntegrationsSection>
 
       <IntegrationsSection title="Social">
-        <IntegrationCard emoji="📸" name="Instagram" description="Auto-post approved captions, analyze brand voice from your feed" unlocks="We study your existing posts to match your voice automatically" connected={false} comingSoon={true} />
+        <IntegrationCard
+          emoji="📸" name="Instagram" description="Auto-post approved content, brand voice analysis"
+          unlocks="We study your existing posts to match your voice, then auto-post approved content"
+          connected={!!customer?.instagram_handle}
+          fieldLabel="Instagram Handle" fieldKey="instagram_handle" fieldValue={customer?.instagram_handle}
+          onSave={saveField}
+          tooltip="Enter your Instagram handle (without @). To enable auto-posting, connect via the Meta Developer portal and paste your Page Access Token to ryan@sidecarhq.cc." />
       </IntegrationsSection>
 
     </div>
