@@ -666,9 +666,9 @@ function IntegrationsView({ customer, onUpdate }) {
 function PlanView({ customer }) {
   const current = customer?.subscription_tier || 'trial';
   const tiers = [
-    { key: 'the_well',      name: 'The Well',      price: '$49',   period: '/mo', posts: 8,   desc: 'SMS bot, content creation, review responses, ordering.' },
-    { key: 'the_double',    name: 'The Double',     price: '$149',   period: '/mo', posts: 20,  desc: 'Everything in The Well plus hiring, events, inventory tracking, forecasting.' },
-    { key: 'the_full_pour', name: 'The Full Pour',  price: '$399', period: '/mo', posts: '∞', desc: 'Full automation suite. Unlimited everything. Dedicated support.' },
+    { key: 'the_well',      name: 'The Well',      price: '$149',  period: '/mo', posts: 8,   desc: 'SMS bot, content creation, review responses, ordering.' },
+    { key: 'the_double',    name: 'The Double',     price: '$299',  period: '/mo', posts: 20,  desc: 'Everything in The Well plus hiring, events, inventory tracking, forecasting.' },
+    { key: 'the_full_pour', name: 'The Full Pour',  price: '$499',  period: '/mo', posts: '∞', desc: 'Full automation suite. Unlimited everything. Dedicated support.' },
   ];
 
   return (
@@ -746,6 +746,11 @@ export default function SidecarPortal() {
   const [view, setView]         = useState('account');
 
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get('square') === 'connected' || params.get('tab') === 'integrations') {
+      setView('integrations');
+      window.history.replaceState({}, '', '/');
+    }
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session) loadUser(session.user);
       setLoading(false);
