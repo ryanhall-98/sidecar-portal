@@ -667,7 +667,7 @@ function PlanView({ customer }) {
   const current = customer?.subscription_tier || 'trial';
   const tiers = [
     { key: 'the_well',      name: 'The Well',      price: '$149',  period: '/mo', posts: 8,   desc: 'SMS bot, content creation, review responses, ordering.' },
-    { key: 'the_double',    name: 'The Double',     price: '$299',  period: '/mo', posts: 20,  desc: 'Everything in The Well plus hiring, events, inventory tracking, forecasting.' },
+    { key: 'the_double',    name: 'The Double',     price: '$249',  period: '/mo', posts: 20,  desc: 'Everything in The Well plus hiring, events, inventory tracking, forecasting.' },
     { key: 'the_full_pour', name: 'The Full Pour',  price: '$499',  period: '/mo', posts: '∞', desc: 'Full automation suite. Unlimited everything. Dedicated support.' },
   ];
 
