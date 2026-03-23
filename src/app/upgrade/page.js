@@ -23,7 +23,7 @@ const PLANS = [
   {
     key:       'the_well',
     name:      'The Well',
-    price:     249,
+    price:     149,
     priceId:   'price_1TEHiS0TxmXo6nUkOHfjoR9G',
     posts:     8,
     color:     T.accent,
@@ -34,7 +34,7 @@ const PLANS = [
   {
     key:       'the_double',
     name:      'The Double',
-    price:     299,
+    price:     249,
     priceId:   'price_1TEHlL0TxmXo6nUkRjPtEAAm',
     posts:     20,
     color:     T.blue,
