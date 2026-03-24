@@ -33,6 +33,7 @@ const PLAN_META = {
   the_well:      { label: 'The Well',      color: T.accent, bg: T.accentLo, posts: 8    },
   the_double:    { label: 'The Double',    color: T.accent, bg: T.accentLo, posts: 20   },
   the_full_pour: { label: 'The Full Pour', color: T.green,  bg: T.greenLo,  posts: '∞'  },
+  the_house:     { label: 'The House',     color: '#f59e0b', bg: '#251508', posts: '∞'  },
   churned:       { label: 'Churned',       color: T.red,    bg: T.redLo,    posts: 0    },
 };
 
@@ -739,6 +740,7 @@ function PlanView({ customer }) {
     { key: 'the_well',      name: 'The Well',      price: '$149',  period: '/mo', posts: 8,   desc: 'SMS bot, content creation, review responses, ordering.' },
     { key: 'the_double',    name: 'The Double',     price: '$249',  period: '/mo', posts: 20,  desc: 'Everything in The Well plus hiring, events, inventory tracking, forecasting.' },
     { key: 'the_full_pour', name: 'The Full Pour',  price: '$499',  period: '/mo', posts: '∞', desc: 'Full automation suite. Unlimited everything. Dedicated support.' },
+    { key: 'the_house',     name: 'The House',      price: '$1,500', period: '/mo', posts: '∞', desc: 'Multi-location. Dedicated founder support. Custom onboarding. SKU map + distributor network.' },
   ];
 
   return (
