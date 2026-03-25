@@ -293,6 +293,27 @@ function AccountView({ customer, tasks }) {
       {/* Export */}
       <ExportButtons customer={customer} />
 
+      {/* Report via SMS */}
+      <div style={{
+        marginTop: 16, padding: '16px 20px',
+        background: T.surface, border: `1px solid ${T.border}`,
+        borderRadius: 12, display: 'flex', alignItems: 'center',
+        justifyContent: 'space-between', flexWrap: 'wrap', gap: 12,
+      }}>
+        <div>
+          <div style={{ fontSize: 13, fontWeight: 600, color: T.text, marginBottom: 3 }}>Weekly Report</div>
+          <div style={{ fontSize: 12, color: T.textMid }}>Text the bot to get your report delivered as a link</div>
+        </div>
+        <a
+          href={`sms:${SIDECAR_SMS}?body=Send%20me%20my%20weekly%20report`}
+          style={{
+            padding: '8px 16px', background: T.accent, color: '#fff',
+            borderRadius: 8, fontSize: 13, fontWeight: 700,
+            textDecoration: 'none', fontFamily: T.sans, whiteSpace: 'nowrap',
+          }}
+        >📊 Request Report</a>
+      </div>
+
       {/* Recent tasks */}
       <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, overflow: 'hidden', marginTop: 24 }}>
         <div style={{ padding: '16px 20px', borderBottom: `1px solid ${T.border}`, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -740,7 +761,7 @@ function PlanView({ customer }) {
     { key: 'the_well',      name: 'The Well',      price: '$149',  period: '/mo', posts: 8,   desc: 'SMS bot, content creation, review responses, ordering.' },
     { key: 'the_double',    name: 'The Double',     price: '$249',  period: '/mo', posts: 20,  desc: 'Everything in The Well plus hiring, events, inventory tracking, forecasting.' },
     { key: 'the_full_pour', name: 'The Full Pour',  price: '$499',  period: '/mo', posts: '∞', desc: 'Full automation suite. Unlimited everything. Dedicated support.' },
-    { key: 'the_house',     name: 'The House',      price: '$1,500', period: '/mo', posts: '∞', desc: 'Multi-location. Dedicated founder support. Custom onboarding. SKU map + distributor network.' },
+    { key: 'the_house',     name: 'The House',      price: 'Enterprise', period: '', posts: '∞', desc: 'Multi-location. Dedicated founder support. Custom onboarding. SKU map + distributor network.' },
   ];
 
   return (
@@ -784,14 +805,22 @@ function PlanView({ customer }) {
                 </div>
               </div>
               <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: 24, fontWeight: 700, color: T.text, fontFamily: T.mono }}>{tier.price}</div>
+                <div style={{ fontSize: tier.key === 'the_house' ? 16 : 24, fontWeight: 700, color: T.text, fontFamily: T.mono, paddingTop: tier.key === 'the_house' ? 4 : 0 }}>{tier.price}</div>
                 <div style={{ fontSize: 12, color: T.textMid }}>{tier.period}</div>
-                {!isActive && (
+                {!isActive && tier.key !== 'the_house' && (
                   <a href="/upgrade" style={{
                     display: 'inline-block', marginTop: 8, padding: '5px 14px',
                     background: T.accent, color: '#fff', borderRadius: 6,
                     fontSize: 12, fontWeight: 700, textDecoration: 'none', fontFamily: T.sans,
                   }}>Select</a>
+                )}
+                {!isActive && tier.key === 'the_house' && (
+                  <a href="mailto:ryan@sidecarhq.cc" style={{
+                    display: 'inline-block', marginTop: 8, padding: '5px 14px',
+                    background: '#251508', color: '#f59e0b', borderRadius: 6,
+                    border: '1px solid #f59e0b44',
+                    fontSize: 12, fontWeight: 700, textDecoration: 'none', fontFamily: T.sans,
+                  }}>Contact us →</a>
                 )}
               </div>
             </div>
