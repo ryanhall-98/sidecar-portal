@@ -235,6 +235,72 @@ function ExportButtons({ customer }) {
   );
 }
 
+
+// ─── INVENTORY CSV UPLOAD ────────────────────────────────────
+function InventoryUpload({ customer }) {
+  const [uploading, setUploading] = React.useState(false);
+  const [result, setResult]       = React.useState(null);
+  const fileRef = React.useRef(null);
+
+  const handleFile = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !customer?.id) return;
+    setUploading(true);
+    setResult(null);
+    try {
+      const csv_text = await file.text();
+      const res = await fetch('/api/inventory-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ customer_id: customer.id, csv_text }),
+      });
+      const data = await res.json();
+      if (data.error) setResult({ ok: false, msg: data.error });
+      else setResult({ ok: true, msg: `Imported ${data.imported} items${data.skipped ? `, skipped ${data.skipped}` : ''}.` });
+    } catch (err) {
+      setResult({ ok: false, msg: err.message });
+    }
+    setUploading(false);
+    if (fileRef.current) fileRef.current.value = '';
+  };
+
+  return (
+    <div style={{
+      marginTop: 12, padding: '14px 18px',
+      background: T.surface, border: `1px solid ${T.border}`,
+      borderRadius: 10, display: 'flex', alignItems: 'center',
+      justifyContent: 'space-between', flexWrap: 'wrap', gap: 10,
+    }}>
+      <div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: T.text, marginBottom: 2 }}>Bulk Inventory Upload</div>
+        <div style={{ fontSize: 11, color: T.textMid }}>CSV: name, category, stock, par, unit — or just name, stock, par</div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+        {result && (
+          <span style={{ fontSize: 12, color: result.ok ? T.green : T.red }}>{result.msg}</span>
+        )}
+        <input
+          ref={fileRef}
+          type="file"
+          accept=".csv,text/csv"
+          style={{ display: 'none' }}
+          onChange={handleFile}
+        />
+        <button
+          onClick={() => fileRef.current?.click()}
+          disabled={uploading}
+          style={{
+            padding: '7px 14px', background: T.accent, color: '#fff',
+            border: 'none', borderRadius: 7, fontSize: 12, fontWeight: 700,
+            cursor: uploading ? 'wait' : 'pointer', opacity: uploading ? 0.6 : 1,
+            fontFamily: T.sans,
+          }}
+        >{uploading ? 'Importing...' : '↑ Upload CSV'}</button>
+      </div>
+    </div>
+  );
+}
+
 // ─── ACCOUNT VIEW ─────────────────────────────────────────────
 function AccountView({ customer, tasks }) {
   const plan = planMeta(customer?.subscription_tier);
@@ -292,6 +358,7 @@ function AccountView({ customer, tasks }) {
 
       {/* Export */}
       <ExportButtons customer={customer} />
+      <InventoryUpload customer={customer} />
 
       {/* Report via SMS */}
       <div style={{
