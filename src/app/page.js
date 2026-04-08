@@ -30,10 +30,12 @@ const T = {
 
 const PLAN_META = {
   trial:         { label: 'Trial',         color: T.amber,  bg: T.amberLo,  posts: 4    },
-  the_well:      { label: 'The Well',      color: T.accent, bg: T.accentLo, posts: 8    },
-  the_double:    { label: 'The Double',    color: T.accent, bg: T.accentLo, posts: 20   },
-  the_full_pour: { label: 'The Full Pour', color: T.green,  bg: T.greenLo,  posts: '∞'  },
-  the_house:     { label: 'The House',     color: '#f59e0b', bg: '#251508', posts: '∞'  },
+  sidecar:       { label: 'Sidecar',       color: T.accent, bg: T.accentLo, posts: '∞'  },
+  // Legacy tiers — map to sidecar display
+  the_well:      { label: 'Sidecar',       color: T.accent, bg: T.accentLo, posts: '∞'  },
+  the_double:    { label: 'Sidecar',       color: T.accent, bg: T.accentLo, posts: '∞'  },
+  the_full_pour: { label: 'Sidecar',       color: T.green,  bg: T.greenLo,  posts: '∞'  },
+  the_house:     { label: 'Sidecar',       color: '#f59e0b', bg: '#251508', posts: '∞'  },
   churned:       { label: 'Churned',       color: T.red,    bg: T.redLo,    posts: 0    },
 };
 
@@ -825,10 +827,7 @@ function IntegrationsView({ customer, onUpdate }) {
 function PlanView({ customer }) {
   const current = customer?.subscription_tier || 'trial';
   const tiers = [
-    { key: 'the_well',      name: 'The Well',      price: '$149',  period: '/mo', posts: 8,   desc: 'SMS bot, content creation, review responses, ordering.' },
-    { key: 'the_double',    name: 'The Double',     price: '$249',  period: '/mo', posts: 20,  desc: 'Everything in The Well plus hiring, events, inventory tracking, forecasting.' },
-    { key: 'the_full_pour', name: 'The Full Pour',  price: '$499',  period: '/mo', posts: '∞', desc: 'Full automation suite. Unlimited everything. Dedicated support.' },
-    { key: 'the_house',     name: 'The House',      price: 'Enterprise', period: '', posts: '∞', desc: 'Multi-location. Dedicated founder support. Custom onboarding. SKU map + distributor network.' },
+    { key: 'sidecar',       name: 'Sidecar',        price: '$199',  period: '/mo', posts: '∞', desc: 'Every feature included. No limits, no upsells.' },
   ];
 
   return (
