@@ -20,7 +20,7 @@ const PLAN = {
   key:       'sidecar',
   name:      'Sidecar',
   price:     199,
-  priceId:   'price_1TEHiS0TxmXo6nUkOHfjoR9G', // TODO: replace with new $199 Stripe price ID
+  priceId:   'YOUR_NEW_PRICE_ID', // TODO: replace with new $199 Stripe price ID
   color:     T.accent,
   bg:        T.accentLo,
   desc:      'Your entire back office via text. Every feature, no limits, no upsells.',
